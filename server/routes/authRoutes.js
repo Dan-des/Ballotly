@@ -337,12 +337,10 @@ router.post('/send-otp', async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    // Dispatch OTP email (non-blocking — errors are logged but don't fail the request)
-    const emailResult = await sendOtpEmail({ email: trimmedEmail, name: trimmedName, otp });
-    if (!emailResult.success) {
-      console.error('[OTP Route] Email dispatch failed:', emailResult.error);
-      return res.status(500).json({ success: false, error: 'Failed to send verification email. Please try again.' });
-    }
+    // Dispatch OTP email in background (non-blocking) so user UI transitions instantly
+    sendOtpEmail({ email: trimmedEmail, name: trimmedName, otp }).catch((err) => {
+      console.error('[OTP Route Background Error]', err);
+    });
 
     return res.status(200).json({
       success: true,

@@ -20,9 +20,14 @@ function getNodemailerTransporter() {
   }
 
   cachedNodemailerTransporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: { user, pass },
     pool: false,
+    connectionTimeout: 6000,
+    greetingTimeout: 6000,
+    socketTimeout: 8000,
   });
 
   return cachedNodemailerTransporter;
