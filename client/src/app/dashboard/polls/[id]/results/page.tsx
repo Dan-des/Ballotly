@@ -138,29 +138,29 @@ export default function AdminDetailedResultsPage() {
       <div className="max-w-4xl mx-auto space-y-6 print:max-w-none print:space-y-4">
 
         {/* Header - Hidden on Print */}
-        <div className="flex items-center justify-between print:hidden">
-          <Link href="/dashboard" className="flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 font-semibold transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-xs sm:text-sm text-slate-600 hover:text-indigo-600 font-bold transition-colors">
             <ArrowLeft className="w-4 h-4" />
-            Dashboard
+            Back to Dashboard
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs transition-all shadow-sm"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-700 font-bold text-xs transition-all shadow-sm"
             >
-              <Download className="w-4 h-4 text-emerald-600" />
+              <Download className="w-3.5 h-3.5 text-emerald-600" />
               Export CSV
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-all shadow-sm"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all shadow-sm"
             >
-              <Printer className="w-4 h-4 text-slate-600" />
-              Print Audit Report
+              <Printer className="w-3.5 h-3.5 text-slate-600" />
+              Print Report
             </button>
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-extrabold">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Admin Audit Log
+              Audit Log
             </span>
           </div>
         </div>
