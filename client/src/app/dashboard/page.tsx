@@ -404,39 +404,31 @@ export default function Dashboard() {
       <div className="max-w-5xl mx-auto space-y-8">
 
         {/* ── Top Nav Header with Profile Dropdown ────────────────────────────── */}
-        <header className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200 p-0.5 shadow-md flex items-center justify-center shrink-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="Ballotly Logo" className="w-full h-full object-cover rounded-xl" />
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white border border-slate-200 p-0.5 shadow-md flex items-center justify-center shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo.png" alt="Ballotly Logo" className="w-full h-full object-cover rounded-xl" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] sm:text-xs font-extrabold text-indigo-600 uppercase tracking-wider">Ballotly</p>
+                <h1 className="text-sm sm:text-lg font-extrabold text-slate-900 leading-tight truncate">
+                  {adminUser?.name ? `Welcome, ${adminUser.name}` : 'Dashboard'}
+                </h1>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-extrabold text-indigo-600 uppercase tracking-wider">Ballotly</p>
-              <h1 className="text-lg font-extrabold text-slate-900 leading-tight">
-                {adminUser?.name ? `Welcome, ${adminUser.name}` : 'Dashboard'}
-              </h1>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => { setShowCreateModal(true); setFeedbackMsg(null); }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-600/20"
-            >
-              <PlusCircle className="w-4 h-4" />
-              New Poll
-            </button>
-
-            {/* User Profile Dropdown */}
-            <div className="relative" ref={dropdownRef}>
+            {/* Profile menu button */}
+            <div className="relative shrink-0" ref={dropdownRef}>
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 text-slate-700 font-semibold text-xs transition-all shadow-sm"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 text-slate-700 font-semibold text-xs transition-all shadow-sm"
               >
-                <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-[10px]">
+                <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-[10px]">
                   {adminUser?.name ? adminUser.name.charAt(0).toUpperCase() : <UserIcon className="w-3.5 h-3.5" />}
                 </div>
-                <span className="max-w-[120px] truncate">{adminUser?.name || 'Account'}</span>
+                <span className="hidden sm:inline max-w-[100px] truncate">{adminUser?.name || 'Account'}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
@@ -464,6 +456,16 @@ export default function Dashboard() {
               )}
             </div>
           </div>
+
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <button
+              onClick={() => { setShowCreateModal(true); setFeedbackMsg(null); }}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs sm:text-sm transition-all shadow-lg shadow-indigo-600/20"
+            >
+              <PlusCircle className="w-4 h-4" />
+              New Poll
+            </button>
+          </div>
         </header>
 
         {/* ── Feedback Banner ──────────────────────────────────────────────── */}
@@ -482,7 +484,7 @@ export default function Dashboard() {
         )}
 
         {/* ── Summary Metrics ──────────────────────────────────────────────── */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           {[
             { label: 'Total Polls', value: polls.length, icon: Layers, color: 'blue' },
             { label: 'Active Polls', value: activePolls.length, icon: Sparkles, color: 'emerald' },
@@ -1200,9 +1202,9 @@ function PollCard({
   const isActive = !poll.isExpired && new Date(poll.expiresAt) > new Date();
 
   return (
-    <div className="glass-panel p-6 rounded-3xl space-y-4">
+    <div className="glass-panel p-5 sm:p-6 rounded-3xl space-y-4">
       {/* Header row */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <h3 className="font-bold text-slate-900 text-base">{poll.title}</h3>
@@ -1219,7 +1221,7 @@ function PollCard({
           </div>
           {poll.description && <p className="text-xs text-slate-400 line-clamp-1">{poll.description}</p>}
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 flex-wrap shrink-0 pt-1 sm:pt-0">
           {isActive && (
             <button
               onClick={() => onEdit(poll)}
