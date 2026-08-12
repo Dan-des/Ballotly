@@ -20,14 +20,8 @@ function getNodemailerTransporter() {
   }
 
   cachedNodemailerTransporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    service: 'gmail',
     auth: { user, pass },
-    pool: false,
-    connectionTimeout: 6000,
-    greetingTimeout: 6000,
-    socketTimeout: 8000,
   });
 
   return cachedNodemailerTransporter;
@@ -60,8 +54,41 @@ export function verifyTransporter() {
 async function sendMailUnified({ to, subject, html, text, replyTo }) {
   const resendApiKey = process.env.RESEND_API_KEY;
   const smtpUser = process.env.SMTP_USER;
+  const normalizedTo = String(to).toLowerCase().trim();
 
-  // 1. Primary: Attempt Resend API
+  // If sending to external recipients on Resend free plan, prioritize Gmail SMTP to avoid 403 blocks
+  const isOwnerEmail = normalizedTo.includes('daniellanre5@gmail.com');
+
+  // 1. Try Gmail SMTP first for external recipients
+  if (!isOwnerEmail && smtpUser) {
+    const nodemailerTransporter = getNodemailerTransporter();
+    if (nodemailerTransporter) {
+      try {
+        console.log(`✉️  [Ballotly Mailer] Dispatching via Gmail SMTP to ${to}...`);
+        const fromHeader = process.env.FROM_EMAIL || `"Josh from Ballotly" <${smtpUser}>`;
+        const mailOptions = {
+          from: fromHeader,
+          to,
+          subject,
+          html,
+          text,
+          replyTo: replyTo || smtpUser,
+          headers: {
+            'X-Mailer': 'Ballotly Platform v2.0',
+            'Auto-Submitted': 'no',
+          },
+        };
+
+        const info = await nodemailerTransporter.sendMail(mailOptions);
+        console.log(`✉️  [Ballotly Mailer] Dispatched via Gmail SMTP to ${to} (Message ID: ${info.messageId})`);
+        return { success: true, provider: 'nodemailer', id: info.messageId };
+      } catch (smtpErr) {
+        console.error(`❌ [Ballotly Mailer] Gmail SMTP failed for ${to}:`, smtpErr.message);
+      }
+    }
+  }
+
+  // 2. Try Resend API (Primary for owner email or secondary fallback)
   if (resendApiKey) {
     try {
       const resend = new Resend(resendApiKey);
@@ -90,32 +117,24 @@ async function sendMailUnified({ to, subject, html, text, replyTo }) {
     }
   }
 
-  // 2. Fallback: Gmail SMTP via Nodemailer
-  const nodemailerTransporter = getNodemailerTransporter();
-  if (nodemailerTransporter) {
-    try {
-      console.log(`🔄 [Ballotly Mailer] Using Gmail SMTP fallback for ${to}...`);
-      const fromHeader = process.env.FROM_EMAIL || `"Josh from Ballotly" <${smtpUser}>`;
-      const mailOptions = {
-        from: fromHeader,
-        to,
-        subject,
-        html,
-        text,
-        replyTo: replyTo || smtpUser,
-        headers: {
-          'X-Mailer': 'Ballotly Platform v2.0',
-          'Auto-Submitted': 'no',
-        },
-      };
-
-      const info = await nodemailerTransporter.sendMail(mailOptions);
-      console.log(`✉️  [Ballotly Mailer] Dispatched via Gmail SMTP to ${to} (Message ID: ${info.messageId})`);
-      return { success: true, provider: 'nodemailer', id: info.messageId };
-    } catch (smtpErr) {
-      console.error(`❌ [Ballotly Mailer] Gmail SMTP delivery failed for ${to}:`, smtpErr.message);
-      cachedNodemailerTransporter = null; // Clear cached transport on failure
-      return { success: false, error: smtpErr.message };
+  // 3. Fallback to Gmail SMTP if Resend didn't send for owner email
+  if (isOwnerEmail && smtpUser) {
+    const nodemailerTransporter = getNodemailerTransporter();
+    if (nodemailerTransporter) {
+      try {
+        const info = await nodemailerTransporter.sendMail({
+          from: process.env.FROM_EMAIL || `"Josh from Ballotly" <${smtpUser}>`,
+          to,
+          subject,
+          html,
+          text,
+          replyTo: replyTo || smtpUser,
+        });
+        console.log(`✉️  [Ballotly Mailer] Dispatched via Gmail SMTP to ${to} (Message ID: ${info.messageId})`);
+        return { success: true, provider: 'nodemailer', id: info.messageId };
+      } catch (smtpErr) {
+        console.error(`❌ [Ballotly Mailer] Gmail SMTP fallback failed for ${to}:`, smtpErr.message);
+      }
     }
   }
 
