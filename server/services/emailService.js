@@ -31,17 +31,18 @@ function getNodemailerTransporter() {
  * Startup diagnostic verification to log email provider status to console.
  */
 export function verifyTransporter() {
+  const brevoApiKey = process.env.BREVO_API_KEY;
   const resendApiKey = process.env.RESEND_API_KEY;
   const smtpUser = process.env.SMTP_USER;
 
+  if (brevoApiKey) {
+    console.log('✅ [Ballotly Mailer] Brevo API engine initialized (Sends to ALL recipients).');
+  }
   if (resendApiKey) {
     console.log('✅ [Ballotly Mailer] Resend API engine initialized.');
   }
   if (smtpUser) {
     console.log('✅ [Ballotly Mailer] Gmail SMTP fallback engine initialized.');
-  }
-  if (!resendApiKey && !smtpUser) {
-    console.log('⚠️  [Ballotly Mailer] No email credentials found in server/.env.');
   }
 }
 
@@ -52,9 +53,45 @@ export function verifyTransporter() {
  * when Resend free-tier domain restriction (403) occurs.
  */
 async function sendMailUnified({ to, subject, html, text, replyTo }) {
+  const brevoApiKey = process.env.BREVO_API_KEY;
   const resendApiKey = process.env.RESEND_API_KEY;
   const smtpUser = process.env.SMTP_USER;
   const normalizedTo = String(to).toLowerCase().trim();
+
+  // 1. Primary: Attempt Brevo API (Sends to ANY email address without domain restriction)
+  if (brevoApiKey) {
+    try {
+      const senderEmail = process.env.BREVO_SENDER_EMAIL || smtpUser || 'daniellanre5@gmail.com';
+      const senderName = process.env.BREVO_SENDER_NAME || 'Josh from Ballotly';
+
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': brevoApiKey,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: senderName, email: senderEmail },
+          to: [{ email: to }],
+          subject,
+          htmlContent: html,
+          textContent: text,
+          replyTo: replyTo ? { email: replyTo } : undefined,
+        }),
+      });
+
+      const brevoData = await response.json();
+      if (response.ok && brevoData.messageId) {
+        console.log(`✉️  [Ballotly Mailer] Dispatched via Brevo API to ${to} (Message ID: ${brevoData.messageId})`);
+        return { success: true, provider: 'brevo', id: brevoData.messageId };
+      }
+
+      console.warn(`⚠️  [Ballotly Mailer] Brevo notice for ${to}:`, brevoData.message || brevoData);
+    } catch (brevoErr) {
+      console.warn(`⚠️  [Ballotly Mailer] Brevo exception for ${to}:`, brevoErr.message);
+    }
+  }
 
   // If sending to external recipients on Resend free plan, prioritize Gmail SMTP to avoid 403 blocks
   const isOwnerEmail = normalizedTo.includes('daniellanre5@gmail.com');
