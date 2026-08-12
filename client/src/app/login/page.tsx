@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Eye, EyeOff, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 
 import { getApiBaseUrl } from '@/lib/api';
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
@@ -34,6 +34,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -160,15 +161,22 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   id="login-password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   autoComplete="current-password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full glass-input rounded-2xl px-4 py-3 text-sm"
+                  className="w-full glass-input rounded-2xl px-4 py-3 text-sm pr-11"
                 />
-                <Lock className="w-4 h-4 text-slate-400 absolute right-4 top-3.5" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
