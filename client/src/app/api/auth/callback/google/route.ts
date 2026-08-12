@@ -3,7 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
-const REDIRECT_URI = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/auth/callback/google';
+function getRedirectUri(req: NextRequest): string {
+  if (process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI) {
+    return process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
+  }
+  return `${req.nextUrl.origin}/api/auth/callback/google`;
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -17,6 +22,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const currentRedirectUri = getRedirectUri(req);
+
     // Step 1: Exchange authorization code for access token
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -25,7 +32,7 @@ export async function GET(req: NextRequest) {
         code,
         client_id: GOOGLE_CLIENT_ID,
         client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: currentRedirectUri,
         grant_type: 'authorization_code',
       }),
     });

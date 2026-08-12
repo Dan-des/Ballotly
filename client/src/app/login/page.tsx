@@ -7,12 +7,21 @@ import { Mail, Lock, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 
 import { getApiBaseUrl } from '@/lib/api';
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
-const GOOGLE_REDIRECT_URI = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/auth/callback/google';
+
+function getGoogleRedirectUri(): string {
+  if (process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI) {
+    return process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
+  }
+  if (typeof window !== 'undefined') {
+    return `${window.location.protocol}//${window.location.host}/api/auth/callback/google`;
+  }
+  return 'https://ballotlyng.vercel.app/api/auth/callback/google';
+}
 
 function buildGoogleOAuthUrl(): string {
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: GOOGLE_REDIRECT_URI,
+    redirect_uri: getGoogleRedirectUri(),
     response_type: 'code',
     scope: 'openid email profile',
     access_type: 'offline',
