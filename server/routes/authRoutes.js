@@ -13,10 +13,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_voting_jwt_key_2026';
 
 // Helper to generate JWT Token
 export function generateToken(user) {
+  const uid = (user._id || user.id).toString();
   return jwt.sign(
     {
-      userId: user._id.toString(),
-      id: user._id.toString(),
+      userId: uid,
+      id: uid,
+      _id: uid,
       email: user.email,
       name: user.name,
       role: user.role,
@@ -29,7 +31,7 @@ export function generateToken(user) {
 // Middleware to verify JWT Token
 export function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = authHeader && (authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : authHeader);
 
   if (!token) {
     return res.status(401).json({ success: false, error: 'Access denied. No token provided.' });
@@ -37,7 +39,13 @@ export function authenticateToken(req, res, next) {
 
   try {
     const verified = jwt.verify(token, JWT_SECRET);
-    req.user = verified;
+    const rawId = verified._id || verified.userId || verified.id;
+    req.user = {
+      ...verified,
+      _id: mongoose.Types.ObjectId.isValid(rawId) ? new mongoose.Types.ObjectId(rawId) : rawId,
+      id: rawId ? rawId.toString() : rawId,
+      userId: rawId ? rawId.toString() : rawId,
+    };
     next();
   } catch (err) {
     return res.status(403).json({ success: false, error: 'Invalid or expired authentication token.' });

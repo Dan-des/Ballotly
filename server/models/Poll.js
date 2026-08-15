@@ -64,13 +64,16 @@ const pollSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    default: null,
+    required: [true, 'Poll owner (createdBy) is required'],
   },
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
+
+// Compound index for fast user-specific dashboard poll lookups sorted by creation date
+pollSchema.index({ createdBy: 1, createdAt: -1 });
 
 const Poll = mongoose.models.Poll || mongoose.model('Poll', pollSchema);
 

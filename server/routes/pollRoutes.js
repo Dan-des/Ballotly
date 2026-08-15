@@ -10,27 +10,27 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_voting_jwt_key_2026';
 
 /**
  * GET /api/polls
- * Fetch list of polls scoped strictly to authenticated user (if auth token present)
+ * Fetch list of polls scoped strictly to the authenticated user's ObjectId
+ * Expired polls are NOT filtered out by default and remain visible in history.
  */
-router.get('/polls', async (req, res) => {
+router.get('/polls', authenticateToken, async (req, res) => {
   try {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.startsWith('Bearer ') && authHeader.split(' ')[1];
-    let query = {};
+    const rawId = req.user?._id || req.user?.userId || req.user?.id;
+    if (!rawId) {
+      return res.status(401).json({ success: false, error: 'Unauthorized: User ID not found in token.' });
+    }
 
-    if (token) {
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const uId = decoded?.userId || decoded?.id;
-        if (uId) {
-          const objectId = mongoose.Types.ObjectId.isValid(uId)
-            ? new mongoose.Types.ObjectId(uId)
-            : uId;
-          query = { createdBy: objectId };
-        }
-      } catch {
-        // Public request or unauthenticated token
-      }
+    const userObjectId = mongoose.Types.ObjectId.isValid(rawId)
+      ? new mongoose.Types.ObjectId(rawId)
+      : rawId;
+
+    let query = { createdBy: userObjectId };
+
+    // Only filter by status if explicitly requested by query parameter
+    if (req.query.status === 'active') {
+      query.expiresAt = { $gt: new Date() };
+    } else if (req.query.status === 'closed' || req.query.status === 'expired') {
+      query.expiresAt = { $lte: new Date() };
     }
 
     const polls = await Poll.find(query).sort({ createdAt: -1 });
@@ -55,6 +55,7 @@ router.get('/polls', async (req, res) => {
           expiresAt: poll.expiresAt,
           isExpired,
           voteCount,
+          createdBy: poll.createdBy,
           createdAt: poll.createdAt,
         };
       })
@@ -160,10 +161,13 @@ router.post('/polls', authenticateToken, async (req, res) => {
     const validTrackingMethods = ['email', 'phone', 'email_phone', 'student_id', 'email_studentid', 'voter_id'];
     const validTracking = validTrackingMethods.includes(trackingMethod) ? trackingMethod : 'email';
 
-    const uId = req.user?.userId || req.user?.id;
-    const createdByObjId = mongoose.Types.ObjectId.isValid(uId)
-      ? new mongoose.Types.ObjectId(uId)
-      : uId;
+    const rawId = req.user?._id || req.user?.userId || req.user?.id;
+    if (!rawId) {
+      return res.status(401).json({ success: false, error: 'Unauthorized: User ID not found in token.' });
+    }
+    const createdByObjId = mongoose.Types.ObjectId.isValid(rawId)
+      ? new mongoose.Types.ObjectId(rawId)
+      : rawId;
 
     let cleanedAllowedVoters = [];
     if (Array.isArray(allowedVoters)) {
@@ -189,6 +193,7 @@ router.post('/polls', authenticateToken, async (req, res) => {
     });
 
     const savedPoll = await newPoll.save();
+    console.log(`[Poll Created] ID: ${savedPoll._id}, createdBy: ${savedPoll.createdBy}`);
 
     return res.status(201).json({
       success: true,
@@ -203,6 +208,7 @@ router.post('/polls', authenticateToken, async (req, res) => {
         requireWhitelist: savedPoll.requireWhitelist,
         allowedVoters: savedPoll.allowedVoters,
         expiresAt: savedPoll.expiresAt,
+        createdBy: savedPoll.createdBy,
         createdAt: savedPoll.createdAt,
       },
     });
@@ -218,9 +224,11 @@ router.post('/polls', authenticateToken, async (req, res) => {
  */
 router.put('/polls/:id', authenticateToken, async (req, res) => {
   try {
-    const poll = await Poll.findById(req.params.id);
+    const rawId = req.user?._id || req.user?.userId || req.user?.id;
+    const userObjectId = mongoose.Types.ObjectId.isValid(rawId) ? new mongoose.Types.ObjectId(rawId) : rawId;
+    const poll = await Poll.findOne({ _id: req.params.id, createdBy: userObjectId });
     if (!poll) {
-      return res.status(404).json({ success: false, error: 'Poll not found.' });
+      return res.status(404).json({ success: false, error: 'Poll not found or access denied.' });
     }
 
     // Dynamic Check: Enable editing ONLY when poll is active
@@ -298,6 +306,7 @@ router.put('/polls/:id', authenticateToken, async (req, res) => {
         expiresAt: updatedPoll.expiresAt,
         isExpired,
         voteCount,
+        createdBy: updatedPoll.createdBy,
         createdAt: updatedPoll.createdAt,
       },
     });
@@ -313,9 +322,11 @@ router.put('/polls/:id', authenticateToken, async (req, res) => {
  */
 router.patch('/polls/:id/toggle-results', authenticateToken, async (req, res) => {
   try {
-    const poll = await Poll.findById(req.params.id);
+    const rawId = req.user?._id || req.user?.userId || req.user?.id;
+    const userObjectId = mongoose.Types.ObjectId.isValid(rawId) ? new mongoose.Types.ObjectId(rawId) : rawId;
+    const poll = await Poll.findOne({ _id: req.params.id, createdBy: userObjectId });
     if (!poll) {
-      return res.status(404).json({ success: false, error: 'Poll not found.' });
+      return res.status(404).json({ success: false, error: 'Poll not found or access denied.' });
     }
 
     poll.isResultPublic = !poll.isResultPublic;
@@ -337,10 +348,12 @@ router.patch('/polls/:id/toggle-results', authenticateToken, async (req, res) =>
  */
 router.delete('/polls/:id', authenticateToken, async (req, res) => {
   try {
+    const rawId = req.user?._id || req.user?.userId || req.user?.id;
+    const userObjectId = mongoose.Types.ObjectId.isValid(rawId) ? new mongoose.Types.ObjectId(rawId) : rawId;
     const pollId = req.params.id;
-    const poll = await Poll.findById(pollId);
+    const poll = await Poll.findOne({ _id: pollId, createdBy: userObjectId });
     if (!poll) {
-      return res.status(404).json({ success: false, error: 'Poll not found.' });
+      return res.status(404).json({ success: false, error: 'Poll not found or access denied.' });
     }
 
     await Poll.findByIdAndDelete(pollId);
