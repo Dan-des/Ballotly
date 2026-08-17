@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Mail, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 
 import { getApiBaseUrl } from '@/lib/api';
+import ScrollReveal from '@/components/ScrollReveal';
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 function getGoogleRedirectUri(): string {
@@ -91,7 +92,7 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-[85vh] flex flex-col justify-center items-center px-4 py-12">
-      <div className="w-full max-w-md space-y-6">
+      <ScrollReveal direction="down" delay={40} className="w-full max-w-md space-y-6">
         {/* Brand Header */}
         <div className="text-center flex flex-col items-center">
           <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 p-1 mb-2 flex items-center justify-center">
@@ -113,9 +114,9 @@ export default function LoginPage() {
         </div>
 
         {/* Solid Tactile Card */}
-        <div className="app-card p-8 space-y-6">
+        <div className="app-card p-8 space-y-6 shadow-sm">
           {errorMessage && (
-            <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
+            <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
               <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
               <span>{errorMessage}</span>
             </div>
@@ -126,7 +127,7 @@ export default function LoginPage() {
             type="button"
             onClick={handleGoogleOAuth}
             disabled={isLoading}
-            className="w-full py-2.5 px-4 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-xs transition-colors flex items-center justify-center gap-2.5"
+            className="btn-press w-full py-2.5 px-4 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-xs transition-colors flex items-center justify-center gap-2.5"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -193,7 +194,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2"
+              className="btn-press w-full py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -211,8 +212,7 @@ export default function LoginPage() {
             Register new account
           </Link>
         </p>
-      </div>
+      </ScrollReveal>
     </main>
   );
 }
-

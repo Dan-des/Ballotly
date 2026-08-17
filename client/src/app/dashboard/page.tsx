@@ -36,6 +36,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 
 import { getApiBaseUrl } from '@/lib/api';
 import { PollCardSkeleton } from '@/components/SkeletonLoader';
+import ScrollReveal from '@/components/ScrollReveal';
 
 type TrackingMethod = 'email' | 'phone' | 'email_phone' | 'student_id' | 'email_studentid' | 'voter_id';
 
@@ -542,114 +543,122 @@ export default function Dashboard() {
             { label: 'Active Now', value: activePolls.length, icon: Zap },
             { label: 'Scheduled', value: scheduledPolls.length, icon: Calendar },
             { label: 'Total Ballots Cast', value: polls.reduce((s, p) => s + p.voteCount, 0).toLocaleString(), icon: BarChart3 },
-          ].map(({ label, value, icon: Icon }) => (
-            <div key={label} className="app-card p-4 sm:p-5 flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 text-blue-600">
-                <Icon className="w-5 h-5" />
+          ].map(({ label, value, icon: Icon }, idx) => (
+            <ScrollReveal key={label} delay={idx * 60} direction="up">
+              <div className="app-card-interactive p-4 sm:p-5 flex items-center gap-3.5 group cursor-default">
+                <div className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 text-blue-600 group-hover:bg-blue-50 transition-colors">
+                  <Icon className="w-5 h-5 icon-float" />
+                </div>
+                <div>
+                  <p className="text-[11px] text-slate-500 font-semibold uppercase">{label}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-slate-900 font-mono">{value}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[11px] text-slate-500 font-semibold uppercase">{label}</p>
-                <p className="text-xl sm:text-2xl font-bold text-slate-900 font-mono">{value}</p>
-              </div>
-            </div>
+            </ScrollReveal>
           ))}
         </div>
 
         {/* ── Scheduled Polls (If any) ─────────────────────────────────────── */}
         {scheduledPolls.length > 0 && (
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-indigo-600" />
-                <h2 className="text-base font-bold text-slate-900">Scheduled Elections</h2>
+          <ScrollReveal direction="up" delay={100}>
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-indigo-600" />
+                  <h2 className="text-base font-bold text-slate-900">Scheduled Elections</h2>
+                </div>
+                <span className="text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full">
+                  {scheduledPolls.length} upcoming
+                </span>
               </div>
-              <span className="text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full">
-                {scheduledPolls.length} upcoming
-              </span>
-            </div>
 
-            <div className="space-y-4">
-              {scheduledPolls.map((poll) => (
-                <PollCard
-                  key={poll.id}
-                  poll={poll}
-                  trackingLabel={trackingLabel}
-                  onToggleResults={handleToggleResults}
-                  onDelete={handleDeletePoll}
-                  onShare={openShareModal}
-                  onOpenQr={openQrModal}
-                  onEdit={openEditModal}
-                />
-              ))}
-            </div>
-          </section>
+              <div className="space-y-4">
+                {scheduledPolls.map((poll) => (
+                  <PollCard
+                    key={poll.id}
+                    poll={poll}
+                    trackingLabel={trackingLabel}
+                    onToggleResults={handleToggleResults}
+                    onDelete={handleDeletePoll}
+                    onShare={openShareModal}
+                    onOpenQr={openQrModal}
+                    onEdit={openEditModal}
+                  />
+                ))}
+              </div>
+            </section>
+          </ScrollReveal>
         )}
 
         {/* ── Active Polls ─────────────────────────────────────────────────── */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-emerald-600" />
-              <h2 className="text-base font-bold text-slate-900">Active Elections</h2>
+        <ScrollReveal direction="up" delay={150}>
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-emerald-600" />
+                <h2 className="text-base font-bold text-slate-900">Active Elections</h2>
+              </div>
+              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                {activePolls.length} running
+              </span>
             </div>
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-              {activePolls.length} running
-            </span>
-          </div>
 
-          {isLoadingPolls ? (
-            <div className="space-y-4">
-              <PollCardSkeleton />
-              <PollCardSkeleton />
-            </div>
-          ) : activePolls.length === 0 ? (
-            <div className="app-card p-10 text-center text-slate-400 space-y-2">
-              <Layers className="w-8 h-8 mx-auto text-slate-300" />
-              <p className="text-xs font-medium text-slate-500">No active elections currently running.</p>
-              <p className="text-[11px] text-slate-400">Click the floating plus (+) button in the lower-right corner to launch or schedule a new election.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {activePolls.map((poll) => (
-                <PollCard
-                  key={poll.id}
-                  poll={poll}
-                  trackingLabel={trackingLabel}
-                  onToggleResults={handleToggleResults}
-                  onDelete={handleDeletePoll}
-                  onShare={openShareModal}
-                  onOpenQr={openQrModal}
-                  onEdit={openEditModal}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+            {isLoadingPolls ? (
+              <div className="space-y-4">
+                <PollCardSkeleton />
+                <PollCardSkeleton />
+              </div>
+            ) : activePolls.length === 0 ? (
+              <div className="app-card p-10 text-center text-slate-400 space-y-2">
+                <Layers className="w-8 h-8 mx-auto text-slate-300" />
+                <p className="text-xs font-medium text-slate-500">No active elections currently running.</p>
+                <p className="text-[11px] text-slate-400">Click the floating plus (+) button in the lower-right corner to launch or schedule a new election.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {activePolls.map((poll) => (
+                  <PollCard
+                    key={poll.id}
+                    poll={poll}
+                    trackingLabel={trackingLabel}
+                    onToggleResults={handleToggleResults}
+                    onDelete={handleDeletePoll}
+                    onShare={openShareModal}
+                    onOpenQr={openQrModal}
+                    onEdit={openEditModal}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </ScrollReveal>
 
         {/* ── Closed Polls ─────────────────────────────────────────────────── */}
         {closedPolls.length > 0 && (
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-800">Closed Polls</h2>
-              <span className="text-xs font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">
-                {closedPolls.length} closed
-              </span>
-            </div>
-            <div className="space-y-4">
-              {closedPolls.map((poll) => (
-                <PollCard
-                  key={poll.id}
-                  poll={poll}
-                  trackingLabel={trackingLabel}
-                  onToggleResults={handleToggleResults}
-                  onDelete={handleDeletePoll}
-                  onShare={openShareModal}
-                  onOpenQr={openQrModal}
-                  onEdit={openEditModal}
-                />
-              ))}
-            </div>
-          </section>
+          <ScrollReveal direction="up" delay={200}>
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-bold text-slate-800">Closed Polls</h2>
+                <span className="text-xs font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">
+                  {closedPolls.length} closed
+                </span>
+              </div>
+              <div className="space-y-4">
+                {closedPolls.map((poll) => (
+                  <PollCard
+                    key={poll.id}
+                    poll={poll}
+                    trackingLabel={trackingLabel}
+                    onToggleResults={handleToggleResults}
+                    onDelete={handleDeletePoll}
+                    onShare={openShareModal}
+                    onOpenQr={openQrModal}
+                    onEdit={openEditModal}
+                  />
+                ))}
+              </div>
+            </section>
+          </ScrollReveal>
         )}
       </div>
 
@@ -1398,7 +1407,7 @@ function PollCard({
   const startsLabel = startsDate ? startsDate.toLocaleString() : '';
 
   return (
-    <div className="app-card p-6 space-y-4">
+    <div className="app-card-interactive p-6 space-y-4">
       {/* Header row */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div className="min-w-0">
@@ -1406,11 +1415,11 @@ function PollCard({
             <h3 className="font-bold text-slate-900 text-base">{poll.title}</h3>
             {isScheduled ? (
               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
-                <Calendar className="w-2.5 h-2.5" /> SCHEDULED
+                <Calendar className="w-2.5 h-2.5 icon-tilt" /> SCHEDULED
               </span>
             ) : isActive ? (
               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                <Zap className="w-2.5 h-2.5" /> ACTIVE
+                <Zap className="w-2.5 h-2.5 icon-tilt" /> ACTIVE
               </span>
             ) : (
               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200">
@@ -1431,7 +1440,7 @@ function PollCard({
             <button
               type="button"
               onClick={() => onEdit(poll)}
-              className="p-1.5 rounded-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              className="btn-press p-1.5 rounded-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
               title="Edit election details"
             >
               <Edit3 className="w-3.5 h-3.5" />
@@ -1440,7 +1449,7 @@ function PollCard({
           <button
             type="button"
             onClick={() => onOpenQr(poll)}
-            className="p-1.5 rounded-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            className="btn-press p-1.5 rounded-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
             title="View & Download QR Code"
           >
             <QrCode className="w-3.5 h-3.5" />
@@ -1448,14 +1457,14 @@ function PollCard({
           <button
             type="button"
             onClick={() => onShare(poll.id)}
-            className="p-1.5 rounded-md bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 transition-colors"
+            className="btn-press p-1.5 rounded-md bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 transition-colors"
             title="Share voting link"
           >
             <Share2 className="w-3.5 h-3.5" />
           </button>
           <Link
             href={`/dashboard/polls/${poll.id}/results`}
-            className="p-1.5 rounded-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            className="btn-press p-1.5 rounded-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
             title="View detailed audit results"
           >
             <BarChart3 className="w-3.5 h-3.5" />
@@ -1463,7 +1472,7 @@ function PollCard({
           <button
             type="button"
             onClick={() => onDelete(poll.id)}
-            className="p-1.5 rounded-md bg-white border border-slate-200 text-red-600 hover:bg-red-50 transition-colors"
+            className="btn-press p-1.5 rounded-md bg-white border border-slate-200 text-red-600 hover:bg-red-50 transition-colors"
             title="Delete election"
           >
             <Trash2 className="w-3.5 h-3.5" />
