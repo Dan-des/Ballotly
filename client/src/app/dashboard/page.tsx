@@ -657,7 +657,7 @@ export default function Dashboard() {
       {showSpeedDial && (
         <div
           onClick={() => setShowSpeedDial(false)}
-          className="fixed inset-0 z-30 bg-slate-900/25 backdrop-blur-[1px] transition-opacity animate-in fade-in duration-200"
+          className="fixed inset-0 z-30 bg-slate-900/25 backdrop-blur-[1px] animate-backdrop-in"
           aria-hidden="true"
         />
       )}
@@ -665,12 +665,12 @@ export default function Dashboard() {
       {/* ── Floating Action Button (FAB) Speed Dial ────────────────────────── */}
       <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
         {showSpeedDial && (
-          <div className="flex flex-col items-end gap-2.5 mb-1 animate-in fade-in slide-in-from-bottom-3 duration-200">
-            {/* Schedule Option */}
+          <div className="flex flex-col items-end gap-2.5 mb-1">
+            {/* Schedule Option (Staggered Animation Item 2) */}
             <button
               type="button"
               onClick={() => openCreateModal(true)}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs shadow-2xl hover:bg-slate-50 hover:scale-[1.02] transition-all group active:scale-95"
+              className="animate-speeddial-item-2 flex items-center gap-3 px-4 py-2.5 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs shadow-2xl hover:bg-slate-50 hover:scale-[1.02] transition-all group active:scale-95"
             >
               <div className="text-right">
                 <p className="text-slate-800 group-hover:text-indigo-600 font-bold leading-none">Schedule Election</p>
@@ -681,11 +681,11 @@ export default function Dashboard() {
               </div>
             </button>
 
-            {/* Launch Immediately Option */}
+            {/* Launch Immediately Option (Animation Item 1) */}
             <button
               type="button"
               onClick={() => openCreateModal(false)}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs shadow-2xl hover:bg-slate-50 hover:scale-[1.02] transition-all group active:scale-95"
+              className="animate-speeddial-item-1 flex items-center gap-3 px-4 py-2.5 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs shadow-2xl hover:bg-slate-50 hover:scale-[1.02] transition-all group active:scale-95"
             >
               <div className="text-right">
                 <p className="text-slate-800 group-hover:text-blue-600 font-bold leading-none">Launch Immediately</p>
@@ -720,8 +720,8 @@ export default function Dashboard() {
 
       {/* ── Create / Schedule Poll Modal ────────────────────────────────────── */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
-          <div className="max-h-[90vh] w-full max-w-xl flex flex-col rounded-xl bg-white shadow-xl border border-slate-200 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 animate-backdrop-in">
+          <div className="animate-modal-in max-h-[90vh] w-full max-w-xl flex flex-col rounded-xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-200 shrink-0 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -939,7 +939,7 @@ export default function Dashboard() {
                                 }}
                                 className="p-1.5 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                               >
-                                <X className="w-3 h-3" />
+                                <X className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>
@@ -953,7 +953,7 @@ export default function Dashboard() {
                           }}
                           className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1"
                         >
-                          <PlusCircle className="w-3 h-3" /> Add Candidate for {cat.title || 'Position'}
+                          <PlusCircle className="w-3.5 h-3.5" /> Add Candidate for {cat.title || 'Position'}
                         </button>
                       </div>
                     </div>
@@ -1097,8 +1097,8 @@ export default function Dashboard() {
 
       {/* ── Edit Active Poll Modal ────────────────────────────────────────── */}
       {editingPoll && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
-          <div className="max-h-[90vh] w-full max-w-xl flex flex-col rounded-xl bg-white shadow-xl border border-slate-200 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 animate-backdrop-in">
+          <div className="animate-modal-in max-h-[90vh] w-full max-w-xl flex flex-col rounded-xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
             <div className="p-5 border-b border-slate-200 shrink-0 flex items-center justify-between">
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <Edit3 className="w-4 h-4 text-blue-600" /> Edit Election Details
@@ -1223,8 +1223,8 @@ export default function Dashboard() {
 
       {/* ── Share Modal ─────────────────────────────────────────────────────── */}
       {shareLink && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
-          <div className="app-card max-w-md w-full p-6 space-y-4 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 animate-backdrop-in">
+          <div className="animate-modal-in app-card max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-slate-900 text-base">Share Voting Link</h3>
               <button type="button" onClick={() => setShareLink(null)} className="text-slate-400 hover:text-slate-600">
@@ -1268,8 +1268,8 @@ export default function Dashboard() {
 
       {/* ── Delete Account Confirmation Modal ───────────────────────────────── */}
       {showDeleteAccountModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
-          <div className="app-card max-w-md w-full p-6 space-y-4 shadow-xl border-red-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 animate-backdrop-in">
+          <div className="animate-modal-in app-card max-w-md w-full p-6 space-y-4 shadow-2xl border-red-200">
             <div className="flex items-center gap-3 text-red-600">
               <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0 border border-red-100">
                 <AlertTriangle className="w-5 h-5" />
@@ -1306,8 +1306,8 @@ export default function Dashboard() {
 
       {/* ── QR Code Modal ───────────────────────────────────────────────────── */}
       {qrModalPoll && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
-          <div className="app-card max-w-sm w-full p-6 space-y-4 shadow-xl text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 animate-backdrop-in">
+          <div className="animate-modal-in app-card max-w-sm w-full p-6 space-y-4 shadow-2xl text-center">
             <div className="flex items-center justify-between text-left">
               <div>
                 <h3 className="font-bold text-slate-900 text-base">Election QR Code</h3>

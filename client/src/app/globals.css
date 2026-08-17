@@ -80,3 +80,68 @@ body {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;
 }
+
+/* ── Silky-Smooth Pop-Up & Modal Animations ─────────────────────────────── */
+@keyframes modalBackdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalCardPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes speedDialItem1 {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.85);
+  }
+  60% {
+    transform: translateY(-2px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes speedDialItem2 {
+  0% {
+    opacity: 0;
+    transform: translateY(26px) scale(0.8);
+  }
+  60% {
+    transform: translateY(-2px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-backdrop-in {
+  animation: modalBackdropFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modal-in {
+  animation: modalCardPopIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-speeddial-item-1 {
+  animation: speedDialItem1 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-speeddial-item-2 {
+  animation: speedDialItem2 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
