@@ -653,18 +653,30 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* ── Backdrop Overlay when Speed Dial is open (Click-away to Cancel) ── */}
+      {showSpeedDial && (
+        <div
+          onClick={() => setShowSpeedDial(false)}
+          className="fixed inset-0 z-30 bg-slate-900/25 backdrop-blur-[1px] transition-opacity animate-in fade-in duration-200"
+          aria-hidden="true"
+        />
+      )}
+
       {/* ── Floating Action Button (FAB) Speed Dial ────────────────────────── */}
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2.5">
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
         {showSpeedDial && (
-          <div className="flex flex-col items-end gap-2 mb-1 animate-in fade-in slide-in-from-bottom-2 duration-150">
+          <div className="flex flex-col items-end gap-2.5 mb-1 animate-in fade-in slide-in-from-bottom-3 duration-200">
             {/* Schedule Option */}
             <button
               type="button"
               onClick={() => openCreateModal(true)}
-              className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs shadow-xl hover:bg-slate-50 transition-all group"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs shadow-2xl hover:bg-slate-50 hover:scale-[1.02] transition-all group active:scale-95"
             >
-              <span className="text-slate-700 group-hover:text-indigo-600 font-medium">Schedule for Later</span>
-              <div className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center shrink-0">
+              <div className="text-right">
+                <p className="text-slate-800 group-hover:text-indigo-600 font-bold leading-none">Schedule Election</p>
+                <p className="text-[10px] text-slate-400 font-normal mt-0.5 leading-none">Set future start &amp; end time</p>
+              </div>
+              <div className="w-9 h-9 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center shrink-0 shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                 <Calendar className="w-4 h-4" />
               </div>
             </button>
@@ -673,29 +685,36 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={() => openCreateModal(false)}
-              className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs shadow-xl hover:bg-slate-50 transition-all group"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs shadow-2xl hover:bg-slate-50 hover:scale-[1.02] transition-all group active:scale-95"
             >
-              <span className="text-slate-700 group-hover:text-blue-600 font-medium">Launch Immediately</span>
-              <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center shrink-0">
+              <div className="text-right">
+                <p className="text-slate-800 group-hover:text-blue-600 font-bold leading-none">Launch Immediately</p>
+                <p className="text-[10px] text-slate-400 font-normal mt-0.5 leading-none">Open ballot voting now</p>
+              </div>
+              <div className="w-9 h-9 rounded-full bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center shrink-0 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 <Zap className="w-4 h-4" />
               </div>
             </button>
           </div>
         )}
 
-        {/* Main Circular Floating Trigger Button */}
+        {/* Main Circular Floating Trigger Button with Rotation Animation & Visible Cancel Icon */}
         <button
           type="button"
           onClick={() => setShowSpeedDial(!showSpeedDial)}
-          className={`w-14 h-14 rounded-full text-white shadow-xl flex items-center justify-center transition-all ${
+          className={`w-14 h-14 rounded-full text-white shadow-2xl flex items-center justify-center transition-all duration-300 ease-out active:scale-95 ${
             showSpeedDial
-              ? 'rotate-45 bg-slate-800 hover:bg-slate-900 shadow-slate-900/30'
-              : 'bg-blue-600 hover:bg-blue-700 hover:scale-105 shadow-blue-600/30'
+              ? 'bg-slate-800 hover:bg-slate-900 rotate-90 shadow-slate-900/40 ring-4 ring-slate-200'
+              : 'bg-blue-600 hover:bg-blue-700 hover:scale-105 shadow-blue-600/40'
           }`}
-          title={showSpeedDial ? 'Close options' : 'Create or schedule an election'}
-          aria-label="Create or schedule election"
+          title={showSpeedDial ? 'Cancel and return popups back' : 'Create or schedule an election'}
+          aria-label={showSpeedDial ? 'Cancel and return popups back' : 'Create or schedule an election'}
         >
-          <Plus className="w-7 h-7 stroke-[2.5]" />
+          {showSpeedDial ? (
+            <X className="w-6 h-6 stroke-[2.5] text-white transition-transform duration-300" />
+          ) : (
+            <Plus className="w-7 h-7 stroke-[2.5] text-white transition-transform duration-300" />
+          )}
         </button>
       </div>
 
