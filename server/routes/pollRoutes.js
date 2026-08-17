@@ -33,33 +33,50 @@ router.get('/polls', authenticateToken, async (req, res) => {
       query.expiresAt = { $lte: new Date() };
     }
 
-    const polls = await Poll.find(query).sort({ createdAt: -1 });
+    const polls = await Poll.find(query).sort({ createdAt: -1 }).lean();
 
-    const pollsWithCounts = await Promise.all(
-      polls.map(async (poll) => {
-        const voteCount = await Vote.countDocuments({ pollId: poll._id });
-        const now = new Date();
-        const isExpired = new Date(poll.expiresAt) <= now;
+    if (!polls || polls.length === 0) {
+      return res.status(200).json({
+        success: true,
+        polls: [],
+      });
+    }
 
-        return {
-          id: poll._id,
-          title: poll.title,
-          description: poll.description,
-          options: poll.options,
-          trackingMethod: poll.trackingMethod,
-          isResultPublic: poll.isResultPublic,
-          requireWhitelist: Boolean(poll.requireWhitelist),
-          allowedVoters: poll.allowedVoters || [],
-          categories: poll.categories || [],
-          startsAt: poll.startsAt,
-          expiresAt: poll.expiresAt,
-          isExpired,
-          voteCount,
-          createdBy: poll.createdBy,
-          createdAt: poll.createdAt,
-        };
-      })
-    );
+    // High-performance single aggregation: compute all vote counts in 1 query
+    const pollIds = polls.map((p) => p._id);
+    const voteAggregates = await Vote.aggregate([
+      { $match: { pollId: { $in: pollIds } } },
+      { $group: { _id: '$pollId', total: { $sum: 1 } } },
+    ]);
+
+    const countMap = new Map();
+    voteAggregates.forEach((v) => {
+      countMap.set(v._id.toString(), v.total);
+    });
+
+    const now = new Date();
+    const pollsWithCounts = polls.map((poll) => {
+      const voteCount = countMap.get(poll._id.toString()) || 0;
+      const isExpired = new Date(poll.expiresAt) <= now;
+
+      return {
+        id: poll._id,
+        title: poll.title,
+        description: poll.description,
+        options: poll.options,
+        trackingMethod: poll.trackingMethod,
+        isResultPublic: poll.isResultPublic,
+        requireWhitelist: Boolean(poll.requireWhitelist),
+        allowedVoters: poll.allowedVoters || [],
+        categories: poll.categories || [],
+        startsAt: poll.startsAt,
+        expiresAt: poll.expiresAt,
+        isExpired,
+        voteCount,
+        createdBy: poll.createdBy,
+        createdAt: poll.createdAt,
+      };
+    });
 
     return res.status(200).json({
       success: true,
@@ -77,7 +94,7 @@ router.get('/polls', authenticateToken, async (req, res) => {
  */
 router.get('/polls/:id', async (req, res) => {
   try {
-    const poll = await Poll.findById(req.params.id);
+    const poll = await Poll.findById(req.params.id).lean();
     if (!poll) {
       return res.status(404).json({ success: false, error: 'Poll not found.' });
     }

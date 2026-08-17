@@ -2,17 +2,21 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import compression from 'compression';
+import axios from 'axios';
 import authRoutes from './routes/authRoutes.js';
 import pollRoutes from './routes/pollRoutes.js';
 import voteRoutes from './routes/voteRoutes.js';
 import { verifyTransporter } from './services/emailService.js';
-
 
 dotenv.config();
 
 const app = express();
 let PORT = process.env.PORT || 5001;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/student_voting_db';
+
+// Compression middleware to minimize wire payload sizes
+app.use(compression());
 
 // Middleware Configuration
 app.use(cors({
@@ -22,27 +26,25 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-  next();
+// Fast Health / Warm-up Endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'online',
+    timestamp: new Date().toISOString(),
+    dbState: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+  });
+});
+
+app.get('/api/ping', (req, res) => {
+  res.status(200).send('pong');
 });
 
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api', pollRoutes);
 app.use('/api', voteRoutes);
-
-// Health Check Endpoint
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'online',
-    timestamp: new Date(),
-    dbState: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-  });
-});
 
 let memoryDbInstance = null;
 
@@ -51,12 +53,18 @@ export async function startServer(customMongoUri = null) {
   const uriToUse = customMongoUri || MONGO_URI;
 
   if (mongoose.connection.readyState === 0) {
-    console.log(`[MongoDB] Attempting connection to ${uriToUse}...`);
+    console.log(`[MongoDB] Attempting optimized connection to ${uriToUse}...`);
     try {
-      await mongoose.connect(uriToUse, { serverSelectionTimeoutMS: 2000 });
-      console.log(`[MongoDB] Successfully connected to database.`);
+      await mongoose.connect(uriToUse, {
+        maxPoolSize: 10,
+        minPoolSize: 2,
+        socketTimeoutMS: 30000,
+        serverSelectionTimeoutMS: 5000,
+        family: 4, // Avoid IPv6 DNS lookup delays
+      });
+      console.log(`[MongoDB] Successfully connected with active connection pool.`);
     } catch (error) {
-      console.log(`[MongoDB Notice] Could not connect to local MongoDB service (${error.message}).`);
+      console.log(`[MongoDB Notice] Could not connect to primary MongoDB service (${error.message}).`);
       console.log(`[MongoDB Auto-Fallback] Initializing in-memory MongoDB server...`);
 
       try {
@@ -75,8 +83,22 @@ export async function startServer(customMongoUri = null) {
 
   return new Promise((resolve, reject) => {
     const serverInstance = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`[Server Ready] Listening on http://0.0.0.0:${PORT} (Accessible on local Wi-Fi network)`);
+      console.log(`[Server Ready] Listening on http://0.0.0.0:${PORT}`);
       verifyTransporter();
+
+      // Render Keep-Alive: Ping own public URL every 10 minutes to prevent cold sleep during active usage
+      const selfUrl = process.env.RENDER_EXTERNAL_URL || process.env.SERVER_URL;
+      if (selfUrl && selfUrl.startsWith('http')) {
+        console.log(`[Keep-Alive] Initializing self-ping service for ${selfUrl}`);
+        setInterval(async () => {
+          try {
+            await axios.get(`${selfUrl}/api/health`, { timeout: 8000 });
+          } catch (err) {
+            // Quiet catch for self-ping
+          }
+        }, 10 * 60 * 1000); // Every 10 minutes
+      }
+
       resolve({ app, serverInstance });
     });
 

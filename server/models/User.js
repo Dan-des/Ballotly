@@ -47,6 +47,9 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
+// Fast index for login authentication lookup
+userSchema.index({ email: 1 });
+
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 export default User;

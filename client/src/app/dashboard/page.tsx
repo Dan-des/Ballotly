@@ -143,6 +143,19 @@ export default function Dashboard() {
     if (savedUser) {
       try { setAdminUser(JSON.parse(savedUser)); } catch { /* ignore */ }
     }
+
+    // Instant SWR Cache hydration
+    try {
+      const cachedPolls = sessionStorage.getItem('ballotly_polls_cache');
+      if (cachedPolls) {
+        const parsed = JSON.parse(cachedPolls);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPolls(parsed);
+          setIsLoadingPolls(false);
+        }
+      }
+    } catch { /* ignore */ }
+
     fetchPolls(savedToken);
 
     // Close profile dropdown on click outside
@@ -157,14 +170,18 @@ export default function Dashboard() {
   }, []);
 
   const fetchPolls = async (authToken?: string) => {
-    setIsLoadingPolls(true);
     const currentToken = authToken || token || localStorage.getItem('voting_admin_token');
     try {
       const res = await fetch(`${getApiBaseUrl()}/polls`, {
         headers: currentToken ? { Authorization: `Bearer ${currentToken}` } : {},
       });
       const data = await res.json();
-      if (data.success) setPolls(data.polls);
+      if (data.success && Array.isArray(data.polls)) {
+        setPolls(data.polls);
+        try {
+          sessionStorage.setItem('ballotly_polls_cache', JSON.stringify(data.polls));
+        } catch { /* ignore */ }
+      }
     } catch {
       console.error('Error fetching polls.');
     } finally {

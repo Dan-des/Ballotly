@@ -59,6 +59,11 @@ function StepOne({ onOtpSent }: StepOneProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Background server warm-up
+  useEffect(() => {
+    fetch(`${getApiBaseUrl()}/health`).catch(() => {});
+  }, []);
+
   const handleGoogleOAuth = () => {
     if (!GOOGLE_CLIENT_ID) {
       setErrorMessage('Google OAuth is not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID.');
