@@ -579,76 +579,113 @@ export default function Dashboard() {
 
       {/* ── Create Poll Modal ──────────────────────────────────────────────── */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="max-h-[85vh] w-full max-w-xl flex flex-col rounded-2xl bg-white shadow-2xl overflow-hidden">
-            {/* Locked Header */}
-            <div className="p-6 border-b shrink-0 flex items-center justify-between">
-              <h2 className="text-xl font-extrabold text-slate-900">Create New Poll</h2>
-              <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
+          <div className="max-h-[90vh] w-full max-w-xl flex flex-col rounded-xl bg-white shadow-xl border border-slate-200 overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-200 shrink-0 flex items-center justify-between">
+              <h2 className="text-base font-bold text-slate-900">Create New Election</h2>
+              <button
+                type="button"
+                onClick={() => { setShowCreateModal(false); resetForm(); }}
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                title="Close modal"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Scrollable Form Body */}
-            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+            <div className="p-6 overflow-y-auto space-y-5 flex-1 text-xs">
               {/* Title */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Poll Title *</label>
-                <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="e.g. Board Election 2025" className="w-full glass-input rounded-2xl px-4 py-3 text-sm" />
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Election Title *
+                </label>
+                <input
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="e.g. Student Union Government Executive Election 2026"
+                  className="w-full app-input px-3.5 py-2 text-sm"
+                />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Description (optional)</label>
-                <textarea value={newDescription} onChange={(e) => setNewDescription(e.target.value)} rows={2}
-                  placeholder="Brief context for voters..." className="w-full glass-input rounded-2xl px-4 py-3 text-sm resize-none" />
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Description / Context (optional)
+                </label>
+                <textarea
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  rows={2}
+                  placeholder="Brief context and instructions for voters..."
+                  className="w-full app-input px-3.5 py-2 text-sm resize-none"
+                />
               </div>
 
-              {/* Toggle Multi-Position Categories vs Standard Options */}
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-indigo-50/60 border border-indigo-100">
+              {/* Multi-Position Categories Toggle */}
+              <div className="flex items-center justify-between p-3.5 rounded-lg bg-slate-50 border border-slate-200">
                 <div>
-                  <p className="text-xs font-bold text-indigo-900">Multi-Position Election (Optional)</p>
-                  <p className="text-[11px] text-indigo-600">Vote for multiple offices (e.g. President, Vice President, Secretary) on one ballot.</p>
+                  <p className="text-xs font-semibold text-slate-900">Multi-Position Ballot (Optional)</p>
+                  <p className="text-[11px] text-slate-500">Vote for multiple offices (e.g. President, Vice President) on a single ballot.</p>
                 </div>
-                <button type="button" onClick={() => setUseCategories(!useCategories)}
-                  className={`w-11 h-6 rounded-full transition-all relative shrink-0 ${useCategories ? 'bg-indigo-600' : 'bg-slate-300'}`}>
-                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${useCategories ? 'left-6' : 'left-1'}`} />
+                <button
+                  type="button"
+                  onClick={() => setUseCategories(!useCategories)}
+                  className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${useCategories ? 'bg-blue-600' : 'bg-slate-300'}`}
+                >
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${useCategories ? 'left-6' : 'left-1'}`} />
                 </button>
               </div>
 
               {!useCategories ? (
                 /* Standard Options */
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Voting Options / Candidates *</label>
+                <div className="space-y-2">
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                    Candidates / Voting Options *
+                  </label>
                   <div className="space-y-2">
                     {newOptions.map((opt, i) => (
                       <div key={i} className="flex gap-2">
-                        <input value={opt} onChange={(e) => {
-                          const updated = [...newOptions]; updated[i] = e.target.value; setNewOptions(updated);
-                        }} placeholder={`Candidate ${i + 1}`} className="flex-1 glass-input rounded-2xl px-4 py-2.5 text-sm" />
+                        <input
+                          value={opt}
+                          onChange={(e) => {
+                            const updated = [...newOptions];
+                            updated[i] = e.target.value;
+                            setNewOptions(updated);
+                          }}
+                          placeholder={`Candidate ${i + 1}`}
+                          className="flex-1 app-input px-3 py-1.5 text-xs"
+                        />
                         {newOptions.length > 2 && (
-                          <button onClick={() => setNewOptions(newOptions.filter((_, j) => j !== i))}
-                            className="p-2.5 rounded-2xl bg-red-50 border border-red-200 text-red-400 hover:text-red-600 transition-colors">
-                            <X className="w-4 h-4" />
+                          <button
+                            type="button"
+                            onClick={() => setNewOptions(newOptions.filter((_, j) => j !== i))}
+                            className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                            title="Remove candidate"
+                          >
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>
                     ))}
-                    <button onClick={() => setNewOptions([...newOptions, ''])}
-                      className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1 transition-colors">
+                    <button
+                      type="button"
+                      onClick={() => setNewOptions([...newOptions, ''])}
+                      className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1 transition-colors"
+                    >
                       <PlusCircle className="w-3.5 h-3.5" /> Add Candidate Option
                     </button>
                   </div>
                 </div>
               ) : (
                 /* Multi-Position Categories */
-                <div className="space-y-4 pt-1">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Election Positions &amp; Candidates *
+                <div className="space-y-3">
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                    Offices &amp; Candidates *
                   </label>
                   {newCategories.map((cat, catIdx) => (
-                    <div key={catIdx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div key={catIdx} className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-2.5">
                       <div className="flex items-center justify-between gap-2">
                         <input
                           value={cat.title}
@@ -658,18 +695,20 @@ export default function Dashboard() {
                             setNewCategories(updated);
                           }}
                           placeholder="Position Title (e.g. President)"
-                          className="font-bold text-sm bg-white border border-slate-300 rounded-xl px-3 py-1.5 flex-1"
+                          className="font-bold text-xs bg-white border border-slate-300 rounded-lg px-3 py-1.5 flex-1"
                         />
                         {newCategories.length > 1 && (
                           <button
+                            type="button"
                             onClick={() => setNewCategories(newCategories.filter((_, j) => j !== catIdx))}
-                            className="p-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                            className="p-1 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                            title="Remove position"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>
-                      <div className="space-y-2 pl-2">
+                      <div className="space-y-1.5 pl-2">
                         {cat.options.map((opt, optIdx) => (
                           <div key={optIdx} className="flex gap-2">
                             <input
@@ -679,30 +718,32 @@ export default function Dashboard() {
                                 updated[catIdx].options[optIdx] = e.target.value;
                                 setNewCategories(updated);
                               }}
-                              placeholder={`Candidate ${optIdx + 1} for ${cat.title || 'Position'}`}
-                              className="flex-1 glass-input rounded-xl px-3 py-2 text-xs bg-white"
+                              placeholder={`Candidate ${optIdx + 1}`}
+                              className="flex-1 app-input px-2.5 py-1 text-xs"
                             />
                             {cat.options.length > 2 && (
                               <button
+                                type="button"
                                 onClick={() => {
                                   const updated = [...newCategories];
                                   updated[catIdx].options = updated[catIdx].options.filter((_, j) => j !== optIdx);
                                   setNewCategories(updated);
                                 }}
-                                className="p-2 rounded-xl bg-red-50 text-red-400 hover:text-red-600 transition-colors"
+                                className="p-1.5 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                               >
-                                <X className="w-3.5 h-3.5" />
+                                <X className="w-3 h-3" />
                               </button>
                             )}
                           </div>
                         ))}
                         <button
+                          type="button"
                           onClick={() => {
                             const updated = [...newCategories];
                             updated[catIdx].options.push('');
                             setNewCategories(updated);
                           }}
-                          className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 mt-1"
+                          className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1"
                         >
                           <PlusCircle className="w-3 h-3" /> Add Candidate for {cat.title || 'Position'}
                         </button>
@@ -710,36 +751,39 @@ export default function Dashboard() {
                     </div>
                   ))}
                   <button
+                    type="button"
                     onClick={() => setNewCategories([...newCategories, { title: '', options: ['', ''] }])}
-                    className="w-full py-2.5 rounded-2xl border border-dashed border-indigo-300 text-indigo-600 hover:bg-indigo-50 font-semibold text-xs transition-all flex items-center justify-center gap-1.5"
+                    className="w-full py-2 rounded-lg border border-dashed border-slate-300 text-blue-600 hover:bg-blue-50 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
                   >
-                    <PlusCircle className="w-4 h-4" /> Add New Position / Category
+                    <PlusCircle className="w-3.5 h-3.5" /> Add Position / Office
                   </button>
                 </div>
               )}
 
               {/* Tracking Method */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  Duplicate Vote Tracking Criteria
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Voter Identification &amp; Deduplication Method
                 </label>
                 <select
                   value={newTracking}
                   onChange={(e) => setNewTracking(e.target.value as TrackingMethod)}
-                  className="w-full glass-input rounded-2xl px-4 py-3 text-sm bg-white"
+                  className="w-full app-input px-3 py-2 text-xs bg-white"
                 >
                   {TRACKING_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
-                <p className="text-xs text-slate-400 mt-1.5">
+                <p className="text-[11px] text-slate-500 mt-1">
                   {TRACKING_OPTIONS.find((o) => o.value === newTracking)?.description}
                 </p>
               </div>
 
               {/* Duration */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Poll Duration</label>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Election Duration
+                </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { label: 'Days', val: durDays, set: setDurDays },
@@ -748,70 +792,87 @@ export default function Dashboard() {
                   ].map(({ label, val, set }) => (
                     <div key={label}>
                       <p className="text-[10px] text-slate-500 font-semibold text-center mb-1">{label}</p>
-                      <input type="number" min={0} value={val}
+                      <input
+                        type="number"
+                        min={0}
+                        value={val}
                         onChange={(e) => set(Math.max(0, parseInt(e.target.value) || 0))}
-                        className="w-full glass-input rounded-2xl px-3 py-2.5 text-sm text-center" />
+                        className="w-full app-input px-2 py-1.5 text-xs text-center font-mono"
+                      />
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Results Visibility */}
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-200">
+              <div className="flex items-center justify-between p-3.5 rounded-lg bg-slate-50 border border-slate-200">
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">Make Results Public Immediately</p>
-                  <p className="text-xs text-slate-400">Voters can see live tallies from the moment polls open.</p>
+                  <p className="text-xs font-semibold text-slate-800">Public Live Standings</p>
+                  <p className="text-[11px] text-slate-500">Allow voters to view live tally bars during active voting.</p>
                 </div>
-                <button onClick={() => setNewIsPublic(!newIsPublic)} type="button"
-                  className={`w-12 h-6 rounded-full transition-all relative shrink-0 ${newIsPublic ? 'bg-blue-600' : 'bg-slate-300'}`}>
-                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${newIsPublic ? 'left-7' : 'left-1'}`} />
+                <button
+                  type="button"
+                  onClick={() => setNewIsPublic(!newIsPublic)}
+                  className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${newIsPublic ? 'bg-blue-600' : 'bg-slate-300'}`}
+                >
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${newIsPublic ? 'left-6' : 'left-1'}`} />
                 </button>
               </div>
 
-              {/* Flexible Voter Whitelist Toggle */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+              {/* Whitelist Toggle */}
+              <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-                      <Lock className="w-4 h-4 text-amber-500" /> Restrict Access to Allowed Voter Whitelist
+                    <p className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-amber-600" /> Restrict Access via Voter Whitelist
                     </p>
-                    <p className="text-xs text-slate-400">Only specific emails, phone numbers, or student IDs can vote.</p>
+                    <p className="text-[11px] text-slate-500">Only specified IDs/emails on the whitelist will be allowed to vote.</p>
                   </div>
-                  <button onClick={() => setNewRequireWhitelist(!newRequireWhitelist)} type="button"
-                    className={`w-12 h-6 rounded-full transition-all relative shrink-0 ${newRequireWhitelist ? 'bg-amber-500' : 'bg-slate-300'}`}>
-                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${newRequireWhitelist ? 'left-7' : 'left-1'}`} />
+                  <button
+                    type="button"
+                    onClick={() => setNewRequireWhitelist(!newRequireWhitelist)}
+                    className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${newRequireWhitelist ? 'bg-amber-600' : 'bg-slate-300'}`}
+                  >
+                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${newRequireWhitelist ? 'left-6' : 'left-1'}`} />
                   </button>
                 </div>
 
                 {newRequireWhitelist && (
-                  <div className="pt-2 animate-fadeIn">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Allowed Identifiers (Emails, Student IDs, or Phones)
+                  <div className="pt-2">
+                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                      Authorized Identifiers (Emails, Student IDs, or Phones)
                     </label>
                     <textarea
                       rows={3}
                       value={newAllowedVotersText}
                       onChange={(e) => setNewAllowedVotersText(e.target.value)}
-                      placeholder="Paste allowed emails or IDs separated by commas or new lines...&#10;e.g.&#10;student1@univ.edu&#10;STU-884920&#10;+1234567890"
-                      className="w-full glass-input rounded-2xl px-4 py-2.5 text-xs resize-none font-mono"
+                      placeholder="student1@univ.edu, STU-2026-001, +1234567890"
+                      className="w-full app-input px-3 py-2 text-xs resize-none font-mono"
                     />
                     <p className="text-[11px] text-slate-400 mt-1">
-                      Separate each authorized voter email or ID with a comma or new line.
+                      Separate each identifier with a comma or new line.
                     </p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Locked Action Footer */}
-            <div className="p-6 border-t shrink-0 flex gap-3 bg-slate-50">
-              <button onClick={() => { setShowCreateModal(false); resetForm(); }}
-                className="flex-1 py-3 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm transition-all">
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-200 shrink-0 flex gap-2.5 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => { setShowCreateModal(false); resetForm(); }}
+                className="flex-1 py-2 px-3 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-semibold text-xs transition-colors"
+              >
                 Cancel
               </button>
-              <button onClick={handleCreatePoll} disabled={isCreating}
-                className="flex-1 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 disabled:opacity-50">
-                {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><PlusCircle className="w-4 h-4" /> Create Poll</>}
+              <button
+                type="button"
+                onClick={handleCreatePoll}
+                disabled={isCreating}
+                className="flex-1 py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+              >
+                {isCreating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Launch Election'}
               </button>
             </div>
           </div>
@@ -820,159 +881,54 @@ export default function Dashboard() {
 
       {/* ── Edit Active Poll Modal ────────────────────────────────────────── */}
       {editingPoll && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="max-h-[85vh] w-full max-w-xl flex flex-col rounded-2xl bg-white shadow-2xl overflow-hidden">
-            <div className="p-6 border-b shrink-0 flex items-center justify-between">
-              <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-blue-600" /> Edit Active Poll
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
+          <div className="max-h-[90vh] w-full max-w-xl flex flex-col rounded-xl bg-white shadow-xl border border-slate-200 overflow-hidden">
+            <div className="p-5 border-b border-slate-200 shrink-0 flex items-center justify-between">
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Edit3 className="w-4 h-4 text-blue-600" /> Edit Election Details
               </h2>
-              <button onClick={() => setEditingPoll(null)} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
-                <X className="w-5 h-5" />
+              <button
+                type="button"
+                onClick={() => setEditingPoll(null)}
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                title="Close modal"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-4 flex-1">
-              {/* Title */}
+            <div className="p-6 overflow-y-auto space-y-5 flex-1 text-xs">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Poll Title *</label>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Election Title *
+                </label>
                 <input
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full glass-input rounded-2xl px-4 py-3 text-sm"
+                  className="w-full app-input px-3.5 py-2 text-sm"
                 />
               </div>
 
-              {/* Description */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Description</label>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Description
+                </label>
                 <textarea
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   rows={2}
-                  className="w-full glass-input rounded-2xl px-4 py-3 text-sm resize-none"
+                  className="w-full app-input px-3.5 py-2 text-sm resize-none"
                 />
               </div>
 
-              {/* Candidates & Categories Editing */}
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-indigo-50/60 border border-indigo-100">
-                <div>
-                  <p className="text-xs font-bold text-indigo-900">Multi-Position Election (Optional)</p>
-                  <p className="text-[11px] text-indigo-600">Vote for multiple offices (e.g. President, Vice President) on one ballot.</p>
-                </div>
-                <button type="button" onClick={() => setEditUseCategories(!editUseCategories)}
-                  className={`w-11 h-6 rounded-full transition-all relative shrink-0 ${editUseCategories ? 'bg-indigo-600' : 'bg-slate-300'}`}>
-                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${editUseCategories ? 'left-6' : 'left-1'}`} />
-                </button>
-              </div>
-
-              {!editUseCategories ? (
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Voting Options / Candidates *</label>
-                  <div className="space-y-2">
-                    {editOptions.map((opt, i) => (
-                      <div key={i} className="flex gap-2">
-                        <input value={opt} onChange={(e) => {
-                          const updated = [...editOptions]; updated[i] = e.target.value; setEditOptions(updated);
-                        }} placeholder={`Candidate ${i + 1}`} className="flex-1 glass-input rounded-2xl px-4 py-2.5 text-sm" />
-                        {editOptions.length > 2 && (
-                          <button onClick={() => setEditOptions(editOptions.filter((_, j) => j !== i))}
-                            className="p-2.5 rounded-2xl bg-red-50 border border-red-200 text-red-400 hover:text-red-600 transition-colors">
-                            <X className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                    <button onClick={() => setEditOptions([...editOptions, ''])}
-                      className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1 transition-colors">
-                      <PlusCircle className="w-3.5 h-3.5" /> Add Candidate Option
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4 pt-1">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Election Positions &amp; Candidates *
-                  </label>
-                  {editCategories.map((cat, catIdx) => (
-                    <div key={catIdx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <input
-                          value={cat.title}
-                          onChange={(e) => {
-                            const updated = [...editCategories];
-                            updated[catIdx].title = e.target.value;
-                            setEditCategories(updated);
-                          }}
-                          placeholder="Position Title (e.g. President)"
-                          className="font-bold text-sm bg-white border border-slate-300 rounded-xl px-3 py-1.5 flex-1"
-                        />
-                        {editCategories.length > 1 && (
-                          <button
-                            onClick={() => setEditCategories(editCategories.filter((_, j) => j !== catIdx))}
-                            className="p-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                      <div className="space-y-2 pl-2">
-                        {cat.options.map((opt, optIdx) => (
-                          <div key={optIdx} className="flex gap-2">
-                            <input
-                              value={opt}
-                              onChange={(e) => {
-                                const updated = [...editCategories];
-                                updated[catIdx].options[optIdx] = e.target.value;
-                                setEditCategories(updated);
-                              }}
-                              placeholder={`Candidate ${optIdx + 1} for ${cat.title || 'Position'}`}
-                              className="flex-1 glass-input rounded-xl px-3 py-2 text-xs bg-white"
-                            />
-                            {cat.options.length > 2 && (
-                              <button
-                                onClick={() => {
-                                  const updated = [...editCategories];
-                                  updated[catIdx].options = updated[catIdx].options.filter((_, j) => j !== optIdx);
-                                  setEditCategories(updated);
-                                }}
-                                className="p-2 rounded-xl bg-red-50 text-red-400 hover:text-red-600 transition-colors"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                        <button
-                          onClick={() => {
-                            const updated = [...editCategories];
-                            updated[catIdx].options.push('');
-                            setEditCategories(updated);
-                          }}
-                          className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 mt-1"
-                        >
-                          <PlusCircle className="w-3 h-3" /> Add Candidate for {cat.title || 'Position'}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  <button
-                    onClick={() => setEditCategories([...editCategories, { title: '', options: ['', ''] }])}
-                    className="w-full py-2.5 rounded-2xl border border-dashed border-indigo-300 text-indigo-600 hover:bg-indigo-50 font-semibold text-xs transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <PlusCircle className="w-4 h-4" /> Add New Position / Category
-                  </button>
-                </div>
-              )}
-
-              {/* Duplicate Vote Tracking Criteria */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                   Duplicate Vote Tracking Criteria
                 </label>
                 <select
                   value={editTracking}
                   onChange={(e) => setEditTracking(e.target.value as TrackingMethod)}
-                  className="w-full glass-input rounded-2xl px-4 py-3 text-sm bg-white"
+                  className="w-full app-input px-3 py-2 text-xs bg-white"
                 >
                   {TRACKING_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -980,72 +936,71 @@ export default function Dashboard() {
                 </select>
               </div>
 
-              {/* Expiration Date & Time */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Expiration Date & Time *</label>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Expiration Date &amp; Time *
+                </label>
                 <input
                   type="datetime-local"
                   value={editExpiresAt}
                   onChange={(e) => setEditExpiresAt(e.target.value)}
-                  className="w-full glass-input rounded-2xl px-4 py-3 text-sm bg-white"
+                  className="w-full app-input px-3 py-2 text-xs bg-white font-mono"
                 />
               </div>
 
-              {/* Live Results Switch */}
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-200">
+              <div className="flex items-center justify-between p-3.5 rounded-lg bg-slate-50 border border-slate-200">
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">Live Results Publicly Visible</p>
-                  <p className="text-xs text-slate-400">Toggle whether voters can inspect live tallies.</p>
+                  <p className="text-xs font-semibold text-slate-800">Public Live Standings</p>
+                  <p className="text-[11px] text-slate-500">Toggle whether voters can view live tallies.</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setEditIsPublic(!editIsPublic)}
-                  className={`w-12 h-6 rounded-full transition-all relative shrink-0 ${editIsPublic ? 'bg-blue-600' : 'bg-slate-300'}`}
+                  className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${editIsPublic ? 'bg-blue-600' : 'bg-slate-300'}`}
                 >
-                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${editIsPublic ? 'left-7' : 'left-1'}`} />
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${editIsPublic ? 'left-6' : 'left-1'}`} />
                 </button>
               </div>
 
-              {/* Flexible Voter Whitelist Toggle */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+              <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-                      <Lock className="w-4 h-4 text-amber-500" /> Restrict Access to Allowed Voter Whitelist
+                    <p className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-amber-600" /> Restrict Access via Voter Whitelist
                     </p>
-                    <p className="text-xs text-slate-400">Only specific emails, phone numbers, or student IDs can vote.</p>
+                    <p className="text-[11px] text-slate-500">Only authorized individuals can vote.</p>
                   </div>
-                  <button onClick={() => setEditRequireWhitelist(!editRequireWhitelist)} type="button"
-                    className={`w-12 h-6 rounded-full transition-all relative shrink-0 ${editRequireWhitelist ? 'bg-amber-500' : 'bg-slate-300'}`}>
-                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${editRequireWhitelist ? 'left-7' : 'left-1'}`} />
+                  <button
+                    type="button"
+                    onClick={() => setEditRequireWhitelist(!editRequireWhitelist)}
+                    className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${editRequireWhitelist ? 'bg-amber-600' : 'bg-slate-300'}`}
+                  >
+                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${editRequireWhitelist ? 'left-6' : 'left-1'}`} />
                   </button>
                 </div>
 
                 {editRequireWhitelist && (
-                  <div className="pt-2 animate-fadeIn">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  <div className="pt-2">
+                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
                       Allowed Identifiers (Emails, Student IDs, or Phones)
                     </label>
                     <textarea
                       rows={3}
                       value={editAllowedVotersText}
                       onChange={(e) => setEditAllowedVotersText(e.target.value)}
-                      placeholder="Paste allowed emails or IDs separated by commas or new lines...&#10;e.g.&#10;student1@univ.edu&#10;STU-884920&#10;+1234567890"
-                      className="w-full glass-input rounded-2xl px-4 py-2.5 text-xs resize-none font-mono"
+                      placeholder="student1@univ.edu, STU-2026-001, +1234567890"
+                      className="w-full app-input px-3 py-2 text-xs resize-none font-mono"
                     />
-                    <p className="text-[11px] text-slate-400 mt-1">
-                      Separate each authorized voter email or ID with a comma or new line.
-                    </p>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="p-6 border-t shrink-0 flex gap-3 bg-slate-50">
+            <div className="p-4 border-t border-slate-200 shrink-0 flex gap-2.5 bg-slate-50">
               <button
                 type="button"
                 onClick={() => setEditingPoll(null)}
-                className="flex-1 py-3 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm transition-all"
+                className="flex-1 py-2 px-3 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-semibold text-xs transition-colors"
               >
                 Cancel
               </button>
@@ -1053,9 +1008,9 @@ export default function Dashboard() {
                 type="button"
                 onClick={handleUpdatePoll}
                 disabled={isUpdating}
-                className="flex-1 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-1 py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
               >
-                {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Changes'}
+                {isUpdating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Save Changes'}
               </button>
             </div>
           </div>
@@ -1064,31 +1019,33 @@ export default function Dashboard() {
 
       {/* ── Delete Account Confirmation Modal ────────────────────────────── */}
       {showDeleteAccountModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl space-y-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-red-50 border-2 border-red-200 flex items-center justify-center mx-auto text-red-500">
-              <AlertTriangle className="w-8 h-8" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
+          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl border border-slate-200 space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-50 border border-red-200 flex items-center justify-center mx-auto text-red-600">
+              <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-extrabold text-slate-900 mb-2">Delete Account?</h2>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Are you sure you want to delete your account? This will permanently remove all your created polls, votes, and data. This action cannot be undone.
+              <h2 className="text-base font-bold text-slate-900">Delete Account?</h2>
+              <p className="text-xs text-slate-500 leading-relaxed mt-1">
+                Are you sure you want to permanently delete your organizer account? All created elections, voter rosters, and audit records will be purged.
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => setShowDeleteAccountModal(false)}
                 disabled={isDeletingAccount}
-                className="flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-all"
+                className="flex-1 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleDeleteAccount}
                 disabled={isDeletingAccount}
-                className="flex-1 py-3 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-all shadow-lg shadow-red-600/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
               >
-                {isDeletingAccount ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Yes, Delete Account'}
+                {isDeletingAccount ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Yes, Delete Account'}
               </button>
             </div>
           </div>
@@ -1097,29 +1054,45 @@ export default function Dashboard() {
 
       {/* ── Share Modal ────────────────────────────────────────────────────── */}
       {shareLink && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="glass-panel w-full max-w-md rounded-3xl p-8 shadow-2xl space-y-5">
+        <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
+          <div className="app-card w-full max-w-md p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                <Share2 className="w-5 h-5 text-blue-600" /> Share Voting Link
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Share2 className="w-4 h-4 text-blue-600" /> Share Election Link
               </h2>
-              <button onClick={() => setShareLink(null)} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 transition-colors">
-                <X className="w-5 h-5" />
+              <button
+                type="button"
+                onClick={() => setShareLink(null)}
+                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                title="Close modal"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-xs text-slate-500">Share this link with eligible voters:</p>
+            <p className="text-xs text-slate-500">Provide this direct link to eligible voters:</p>
             <div className="flex gap-2">
-              <input readOnly value={shareLink} className="flex-1 glass-input rounded-2xl px-4 py-2.5 text-xs font-mono text-slate-600" />
-              <button onClick={handleCopy}
-                className={`px-4 py-2.5 rounded-2xl font-semibold text-xs transition-all shrink-0 ${
-                  copied ? 'bg-emerald-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}>
+              <input
+                readOnly
+                value={shareLink}
+                className="flex-1 app-input px-3 py-2 text-xs font-mono text-slate-700"
+              />
+              <button
+                type="button"
+                onClick={handleCopy}
+                className={`px-3.5 py-2 rounded-lg font-semibold text-xs transition-colors shrink-0 ${
+                  copied ? 'bg-emerald-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
                 {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
-            <a href={shareLink} target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-2xl border border-blue-200 text-blue-600 hover:bg-blue-50 font-semibold text-xs transition-all">
-              <ExternalLink className="w-3.5 h-3.5" /> Open Voting Page
+            <a
+              href={shareLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5" /> Open Ballot in New Tab
             </a>
           </div>
         </div>
@@ -1127,27 +1100,32 @@ export default function Dashboard() {
 
       {/* ── QR Code Modal ──────────────────────────────────────────────────── */}
       {qrModalPoll && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="glass-panel w-full max-w-md rounded-3xl p-8 shadow-2xl space-y-5 text-center">
+        <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
+          <div className="app-card w-full max-w-sm p-6 shadow-xl space-y-4 text-center">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                <QrCode className="w-5 h-5 text-indigo-600" /> Voting QR Code
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <QrCode className="w-4 h-4 text-blue-600" /> Election QR Code
               </h2>
-              <button onClick={() => setQrModalPoll(null)} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 transition-colors">
-                <X className="w-5 h-5" />
+              <button
+                type="button"
+                onClick={() => setQrModalPoll(null)}
+                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                title="Close modal"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <div>
-              <p className="text-sm font-extrabold text-slate-900 line-clamp-1">{qrModalPoll.title}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Scan with any smartphone camera to open ballot</p>
+              <p className="text-xs font-bold text-slate-900 line-clamp-1">{qrModalPoll.title}</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Scan to open digital ballot</p>
             </div>
 
-            <div className="p-5 rounded-3xl bg-white border border-slate-200 inline-block shadow-inner mx-auto">
+            <div className="p-4 rounded-xl bg-white border border-slate-200 inline-block mx-auto">
               <QRCodeCanvas
                 id="ballotly-qr-code-canvas"
                 value={`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/vote/${qrModalPoll.id}`}
-                size={200}
+                size={180}
                 bgColor="#ffffff"
                 fgColor="#0f172a"
                 level="H"
@@ -1157,6 +1135,7 @@ export default function Dashboard() {
 
             <div className="space-y-2">
               <button
+                type="button"
                 onClick={() => {
                   const canvas = document.getElementById('ballotly-qr-code-canvas') as HTMLCanvasElement;
                   if (!canvas) return;
@@ -1168,21 +1147,22 @@ export default function Dashboard() {
                   downloadLink.click();
                   document.body.removeChild(downloadLink);
                 }}
-                className="w-full py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2"
+                className="w-full py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
               >
-                <Download className="w-4 h-4" /> Download QR Code Image (PNG)
+                <Download className="w-3.5 h-3.5" /> Download QR Code (PNG)
               </button>
 
               <button
+                type="button"
                 onClick={async () => {
                   const url = `${window.location.origin}/vote/${qrModalPoll.id}`;
                   await navigator.clipboard.writeText(url);
                   setQrCopied(true);
                   setTimeout(() => setQrCopied(false), 2000);
                 }}
-                className="w-full py-2.5 px-4 rounded-2xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-all flex items-center justify-center gap-2"
+                className="w-full py-2 px-3 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-colors"
               >
-                {qrCopied ? 'Copied Link!' : 'Copy Direct Voting Link'}
+                {qrCopied ? 'Copied Direct Link!' : 'Copy Direct Link'}
               </button>
             </div>
           </div>

@@ -14,12 +14,17 @@ function ThankYouContent() {
   const isPublic = searchParams.get('isPublic') === 'true';
 
   const [currentUrl, setCurrentUrl] = useState('');
+  const [receiptCopied, setReceiptCopied] = useState(false);
+  const [displayReceipt, setDisplayReceipt] = useState(receiptId || '');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setCurrentUrl(`${window.location.origin}/vote/${pollId}`);
+      if (!receiptId) {
+        setDisplayReceipt(`REC-${Math.random().toString(36).substring(2, 9).toUpperCase()}`);
+      }
     }
-  }, [pollId]);
+  }, [pollId, receiptId]);
 
   return (
     <main className="min-h-[85vh] flex items-center justify-center px-4 py-12">
@@ -51,17 +56,33 @@ function ThankYouContent() {
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 space-y-3 text-xs">
           <div className="flex items-center justify-between text-slate-500 border-b border-slate-200 pb-2">
             <span>Official Ballot Receipt</span>
-            <span className="font-mono text-[11px] text-slate-700">
-              {receiptId || `REC-${Math.random().toString(36).substring(2, 9).toUpperCase()}`}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[11px] text-slate-800 font-semibold">
+                {displayReceipt}
+              </span>
+              <button
+                type="button"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(displayReceipt);
+                  setReceiptCopied(true);
+                  setTimeout(() => setReceiptCopied(false), 2000);
+                }}
+                className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 bg-white border border-slate-200 px-2 py-0.5 rounded transition-colors"
+                title="Copy receipt identifier"
+              >
+                {receiptCopied ? 'Copied' : 'Copy'}
+              </button>
+            </div>
           </div>
           <div className="flex items-center justify-between text-slate-500">
-            <span>Timestamp</span>
+            <span>Verification Timestamp</span>
             <span className="text-slate-700 font-medium">{new Date().toLocaleString()}</span>
           </div>
           <div className="flex items-center justify-between text-slate-500">
             <span>Status</span>
-            <span className="text-emerald-700 font-medium">Verified & Sealed</span>
+            <span className="text-emerald-700 font-semibold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Verified &amp; Sealed
+            </span>
           </div>
         </div>
 
