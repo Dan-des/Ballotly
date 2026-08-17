@@ -361,7 +361,7 @@ export default function VotePage() {
                       <label htmlFor="voterEmail" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
                         Email Address *
                       </label>
-                      <div className="relative">
+                      <div className="relative input-with-icon">
                         <input
                           id="voterEmail"
                           type="email"
@@ -380,7 +380,7 @@ export default function VotePage() {
                       <label htmlFor="voterPhone" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
                         Phone Number *
                       </label>
-                      <div className="relative">
+                      <div className="relative input-with-icon">
                         <input
                           id="voterPhone"
                           type="tel"
@@ -399,7 +399,7 @@ export default function VotePage() {
                       <label htmlFor="studentId" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
                         Student / Matriculation ID *
                       </label>
-                      <div className="relative">
+                      <div className="relative input-with-icon">
                         <input
                           id="studentId"
                           type="text"
@@ -418,7 +418,7 @@ export default function VotePage() {
                       <label htmlFor="voterId" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
                         Voter / Membership ID *
                       </label>
-                      <div className="relative">
+                      <div className="relative input-with-icon">
                         <input
                           id="voterId"
                           type="text"

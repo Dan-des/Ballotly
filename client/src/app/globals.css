@@ -214,6 +214,83 @@ button:hover .icon-spin-hover {
 
 .group:hover .icon-float,
 button:hover .icon-float {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
+
+/* ── Subtle Continuous Dynamism & Breathing Animations ───────────────────── */
+
+/* FAB Idle Floating Breath */
+@keyframes fabFloatBreath {
+  0%, 100% {
+    transform: translateY(0);
+    box-shadow: 0 12px 28px -4px rgba(37, 99, 235, 0.35);
+  }
+  50% {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 36px -4px rgba(37, 99, 235, 0.45);
+  }
+}
+
+.animate-fab-breath {
+  animation: fabFloatBreath 3.2s ease-in-out infinite;
+}
+
+/* Subtle Pulse */
+@keyframes subtlePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 0.92;
+  }
+}
+
+.animate-subtle-pulse {
+  animation: subtlePulse 2.4s ease-in-out infinite;
+}
+
+/* Slow Spin for Clock / Gear indicators */
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 20s linear infinite;
+}
+
+/* Trophy Winning Candidate Shine */
+@keyframes trophyWobble {
+  0%, 90%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  93% {
+    transform: rotate(-10deg) scale(1.12);
+  }
+  96% {
+    transform: rotate(10deg) scale(1.12);
+  }
+}
+
+.animate-trophy-wobble {
+  animation: trophyWobble 4s ease-in-out infinite;
+}
+
+/* Input Dynamic Icon Focus Transition */
+.input-with-icon:focus-within svg {
+  color: #2563eb;
+  transform: scale(1.12) translateY(-1px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.input-with-icon svg {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 

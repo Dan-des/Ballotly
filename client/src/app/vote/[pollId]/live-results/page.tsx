@@ -208,7 +208,7 @@ export default function LiveResultsPage() {
               </div>
               {leader && stats.totalVotes > 0 && (
                 <div className="app-card-interactive bg-emerald-50/80 border border-emerald-200 rounded-lg p-4 flex items-center gap-3 group">
-                  <Trophy className="w-5 h-5 text-emerald-600 shrink-0 icon-tilt" />
+                  <Trophy className="w-5 h-5 text-emerald-600 shrink-0 icon-tilt animate-trophy-wobble" />
                   <div>
                     <p className="text-xs text-emerald-800 font-semibold uppercase">Leading Candidate</p>
                     <p className="text-sm font-bold text-emerald-950 truncate">{leader.option}</p>

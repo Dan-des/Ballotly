@@ -177,6 +177,21 @@ export default function Dashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Body Scroll Lock when any modal is open
+  const isAnyModalOpen = Boolean(
+    showCreateModal || editingPoll || shareLink || qrModalPoll || showDeleteAccountModal
+  );
+
+  useEffect(() => {
+    if (isAnyModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isAnyModalOpen]);
+
   const fetchPolls = async (authToken?: string) => {
     const currentToken = authToken || token || localStorage.getItem('voting_admin_token');
     try {
@@ -686,7 +701,7 @@ export default function Dashboard() {
                 <p className="text-[10px] text-slate-400 font-normal mt-0.5 leading-none">Set future start &amp; end time</p>
               </div>
               <div className="w-9 h-9 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center shrink-0 shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-4 h-4 icon-tilt" />
               </div>
             </button>
 
@@ -701,7 +716,7 @@ export default function Dashboard() {
                 <p className="text-[10px] text-slate-400 font-normal mt-0.5 leading-none">Open ballot voting now</p>
               </div>
               <div className="w-9 h-9 rounded-full bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center shrink-0 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                <Zap className="w-4 h-4" />
+                <Zap className="w-4 h-4 icon-tilt" />
               </div>
             </button>
           </div>
@@ -714,7 +729,7 @@ export default function Dashboard() {
           className={`w-14 h-14 rounded-full text-white shadow-2xl flex items-center justify-center transition-all duration-300 ease-out active:scale-95 ${
             showSpeedDial
               ? 'bg-slate-800 hover:bg-slate-900 rotate-90 shadow-slate-900/40 ring-4 ring-slate-200'
-              : 'bg-blue-600 hover:bg-blue-700 hover:scale-105 shadow-blue-600/40'
+              : 'bg-blue-600 hover:bg-blue-700 hover:scale-105 shadow-blue-600/40 animate-fab-breath'
           }`}
           title={showSpeedDial ? 'Cancel and return popups back' : 'Create or schedule an election'}
           aria-label={showSpeedDial ? 'Cancel and return popups back' : 'Create or schedule an election'}
@@ -1414,12 +1429,16 @@ function PollCard({
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <h3 className="font-bold text-slate-900 text-base">{poll.title}</h3>
             {isScheduled ? (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
-                <Calendar className="w-2.5 h-2.5 icon-tilt" /> SCHEDULED
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1.5">
+                <Calendar className="w-2.5 h-2.5 icon-tilt animate-subtle-pulse" /> SCHEDULED
               </span>
             ) : isActive ? (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                <Zap className="w-2.5 h-2.5 icon-tilt" /> ACTIVE
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                ACTIVE
               </span>
             ) : (
               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200">
@@ -1428,8 +1447,8 @@ function PollCard({
             )}
 
             {poll.requireWhitelist && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
-                <Lock className="w-2.5 h-2.5" /> RESTRICTED
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1 group/badge">
+                <Lock className="w-2.5 h-2.5 icon-tilt" /> RESTRICTED
               </span>
             )}
           </div>
