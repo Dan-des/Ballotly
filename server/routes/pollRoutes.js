@@ -134,7 +134,7 @@ router.get('/polls/:id', async (req, res) => {
  */
 router.post('/polls', authenticateToken, async (req, res) => {
   try {
-    const { title, description, options, categories, trackingMethod, isResultPublic, requireWhitelist, allowedVoters, duration, expiresAt: directExpiresAt } = req.body;
+    const { title, description, options, categories, trackingMethod, isResultPublic, requireWhitelist, allowedVoters, duration, startsAt: directStartsAt, expiresAt: directExpiresAt } = req.body;
 
     if (!title || typeof title !== 'string' || !title.trim()) {
       return res.status(400).json({ success: false, error: 'Poll title is required.' });
@@ -161,6 +161,8 @@ router.post('/polls', authenticateToken, async (req, res) => {
       return res.status(400).json({ success: false, error: 'At least 2 voting options or multi-position categories are required.' });
     }
 
+    const calculatedStartsAt = directStartsAt ? new Date(directStartsAt) : new Date();
+
     let calculatedExpiresAt;
     if (directExpiresAt) {
       calculatedExpiresAt = new Date(directExpiresAt);
@@ -172,7 +174,7 @@ router.post('/polls', authenticateToken, async (req, res) => {
 
       const totalSeconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
       const durationMs = totalSeconds !== 0 ? totalSeconds * 1000 : 24 * 60 * 60 * 1000;
-      calculatedExpiresAt = new Date(Date.now() + durationMs);
+      calculatedExpiresAt = new Date(calculatedStartsAt.getTime() + durationMs);
     }
 
     const validTrackingMethods = ['email', 'phone', 'email_phone', 'student_id', 'email_studentid', 'voter_id'];
@@ -205,6 +207,7 @@ router.post('/polls', authenticateToken, async (req, res) => {
       isResultPublic: Boolean(isResultPublic),
       requireWhitelist: Boolean(requireWhitelist),
       allowedVoters: cleanedAllowedVoters,
+      startsAt: calculatedStartsAt,
       expiresAt: calculatedExpiresAt,
       createdBy: createdByObjId,
     });

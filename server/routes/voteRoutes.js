@@ -36,6 +36,13 @@ router.post('/vote', async (req, res) => {
     const poll = await Poll.findById(pollId);
     if (!poll) return res.status(404).json({ success: false, error: 'Poll not found.' });
 
+    if (poll.startsAt && new Date(poll.startsAt) > new Date()) {
+      return res.status(400).json({
+        success: false,
+        error: `Voting has not started yet. This election is scheduled to open on ${new Date(poll.startsAt).toLocaleString()}.`,
+      });
+    }
+
     if (new Date(poll.expiresAt) <= new Date()) {
       return res.status(400).json({ success: false, error: 'This poll has closed. Voting is no longer accepted.' });
     }

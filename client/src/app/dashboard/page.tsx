@@ -6,6 +6,9 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   PlusCircle,
+  Plus,
+  Calendar,
+  Zap,
   Clock,
   CheckCircle2,
   AlertCircle,
@@ -58,6 +61,7 @@ interface PollItem {
   categories?: PollCategory[];
   trackingMethod: TrackingMethod;
   isResultPublic: boolean;
+  startsAt?: string;
   expiresAt: string;
   requireWhitelist?: boolean;
   allowedVoters?: string[];
@@ -80,7 +84,10 @@ export default function Dashboard() {
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Poll Builder State (Create)
+  // Speed Dial (FAB) & Create/Schedule Poll State
+  const [showSpeedDial, setShowSpeedDial] = useState(false);
+  const [isScheduleMode, setIsScheduleMode] = useState(false);
+  const [scheduledStartsAt, setScheduledStartsAt] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
@@ -189,8 +196,21 @@ export default function Dashboard() {
     }
   };
 
+  const openCreateModal = (schedule: boolean) => {
+    setIsScheduleMode(schedule);
+    if (schedule) {
+      const inTwoHours = new Date(Date.now() + 2 * 3600 * 1000);
+      const iso = new Date(inTwoHours.getTime() - inTwoHours.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      setScheduledStartsAt(iso);
+    } else {
+      setScheduledStartsAt('');
+    }
+    setShowCreateModal(true);
+    setShowSpeedDial(false);
+  };
+
   const handleCreatePoll = async () => {
-    if (!newTitle.trim()) { setFeedbackMsg({ type: 'error', text: 'Poll title is required.' }); return; }
+    if (!newTitle.trim()) { setFeedbackMsg({ type: 'error', text: 'Election title is required.' }); return; }
 
     const validOpts = !useCategories ? newOptions.map((o) => o.trim()).filter(Boolean) : [];
     const validCats = useCategories
@@ -207,7 +227,12 @@ export default function Dashboard() {
       return;
     }
     if (useCategories && validCats.length === 0) {
-      setFeedbackMsg({ type: 'error', text: 'At least 1 category position with 2 candidates is required.' });
+      setFeedbackMsg({ type: 'error', text: 'At least 1 office position with 2 candidates is required.' });
+      return;
+    }
+
+    if (isScheduleMode && !scheduledStartsAt) {
+      setFeedbackMsg({ type: 'error', text: 'Please specify the scheduled start date and time.' });
       return;
     }
 
@@ -225,15 +250,16 @@ export default function Dashboard() {
           isResultPublic: newIsPublic,
           requireWhitelist: newRequireWhitelist,
           allowedVoters: newAllowedVotersText,
+          startsAt: isScheduleMode && scheduledStartsAt ? new Date(scheduledStartsAt).toISOString() : new Date().toISOString(),
           duration: { days: durDays, hours: durHours, minutes: durMinutes, seconds: 0 },
         }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setFeedbackMsg({ type: 'error', text: data.error || 'Poll creation failed.' });
+        setFeedbackMsg({ type: 'error', text: data.error || 'Election creation failed.' });
         return;
       }
-      setFeedbackMsg({ type: 'success', text: `"${data.poll.title}" created successfully!` });
+      setFeedbackMsg({ type: 'success', text: isScheduleMode ? `"${data.poll.title}" scheduled successfully!` : `"${data.poll.title}" launched successfully!` });
       setShowCreateModal(false);
       resetForm();
       fetchPolls();
@@ -254,6 +280,7 @@ export default function Dashboard() {
     ]);
     setNewIsPublic(false); setDurDays(1); setDurHours(0); setDurMinutes(0);
     setNewRequireWhitelist(false); setNewAllowedVotersText('');
+    setIsScheduleMode(false); setScheduledStartsAt('');
   };
 
   const openEditModal = (poll: PollItem) => {
@@ -412,19 +439,27 @@ export default function Dashboard() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const activePolls = polls.filter((p) => !p.isExpired && new Date(p.expiresAt) > new Date());
-  const closedPolls = polls.filter((p) => p.isExpired || new Date(p.expiresAt) <= new Date());
+  const now = new Date();
+  const scheduledPolls = polls.filter(
+    (p) => p.startsAt && new Date(p.startsAt) > now && !p.isExpired && new Date(p.expiresAt) > now
+  );
+  const activePolls = polls.filter(
+    (p) => (!p.startsAt || new Date(p.startsAt) <= now) && !p.isExpired && new Date(p.expiresAt) > now
+  );
+  const closedPolls = polls.filter(
+    (p) => p.isExpired || new Date(p.expiresAt) <= now
+  );
 
   const trackingLabel = (m: TrackingMethod) =>
     TRACKING_OPTIONS.find((o) => o.value === m)?.label ?? m;
 
   return (
-    <main className="min-h-screen px-4 py-10">
+    <main className="min-h-screen px-4 py-10 pb-28">
       <div className="max-w-5xl mx-auto space-y-8">
 
         {/* ── Top Nav Header with Profile Dropdown ────────────────────────────── */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center justify-between gap-3 w-full sm:w-auto">
+          <div className="flex items-center justify-between gap-3 w-full">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0">
                 <Image
@@ -483,17 +518,6 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={() => { setShowCreateModal(true); setFeedbackMsg(null); }}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors"
-            >
-              <PlusCircle className="w-4 h-4" />
-              Create New Election
-            </button>
-          </div>
         </header>
 
         {/* ── Feedback Banner ──────────────────────────────────────────────── */}
@@ -512,28 +536,62 @@ export default function Dashboard() {
         )}
 
         {/* ── Summary Metrics ──────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
           {[
             { label: 'Total Elections', value: polls.length, icon: Layers },
-            { label: 'Active Elections', value: activePolls.length, icon: Sparkles },
+            { label: 'Active Now', value: activePolls.length, icon: Zap },
+            { label: 'Scheduled', value: scheduledPolls.length, icon: Calendar },
             { label: 'Total Ballots Cast', value: polls.reduce((s, p) => s + p.voteCount, 0).toLocaleString(), icon: BarChart3 },
           ].map(({ label, value, icon: Icon }) => (
-            <div key={label} className="app-card p-5 flex items-center gap-4">
+            <div key={label} className="app-card p-4 sm:p-5 flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 text-blue-600">
                 <Icon className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 font-semibold uppercase">{label}</p>
-                <p className="text-2xl font-bold text-slate-900 font-mono">{value}</p>
+                <p className="text-[11px] text-slate-500 font-semibold uppercase">{label}</p>
+                <p className="text-xl sm:text-2xl font-bold text-slate-900 font-mono">{value}</p>
               </div>
             </div>
           ))}
         </div>
 
+        {/* ── Scheduled Polls (If any) ─────────────────────────────────────── */}
+        {scheduledPolls.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-indigo-600" />
+                <h2 className="text-base font-bold text-slate-900">Scheduled Elections</h2>
+              </div>
+              <span className="text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full">
+                {scheduledPolls.length} upcoming
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              {scheduledPolls.map((poll) => (
+                <PollCard
+                  key={poll.id}
+                  poll={poll}
+                  trackingLabel={trackingLabel}
+                  onToggleResults={handleToggleResults}
+                  onDelete={handleDeletePoll}
+                  onShare={openShareModal}
+                  onOpenQr={openQrModal}
+                  onEdit={openEditModal}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* ── Active Polls ─────────────────────────────────────────────────── */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-900">Active Elections</h2>
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-emerald-600" />
+              <h2 className="text-base font-bold text-slate-900">Active Elections</h2>
+            </div>
             <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
               {activePolls.length} running
             </span>
@@ -547,7 +605,8 @@ export default function Dashboard() {
           ) : activePolls.length === 0 ? (
             <div className="app-card p-10 text-center text-slate-400 space-y-2">
               <Layers className="w-8 h-8 mx-auto text-slate-300" />
-              <p className="text-xs font-medium text-slate-500">No active elections. Create a new election to begin.</p>
+              <p className="text-xs font-medium text-slate-500">No active elections currently running.</p>
+              <p className="text-[11px] text-slate-400">Click the floating plus (+) button in the lower-right corner to launch or schedule a new election.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -571,8 +630,8 @@ export default function Dashboard() {
         {closedPolls.length > 0 && (
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-800">Closed Polls</h2>
-              <span className="text-xs font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+              <h2 className="text-base font-bold text-slate-800">Closed Polls</h2>
+              <span className="text-xs font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">
                 {closedPolls.length} closed
               </span>
             </div>
@@ -594,13 +653,75 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* ── Create Poll Modal ──────────────────────────────────────────────── */}
+      {/* ── Floating Action Button (FAB) Speed Dial ────────────────────────── */}
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2.5">
+        {showSpeedDial && (
+          <div className="flex flex-col items-end gap-2 mb-1 animate-in fade-in slide-in-from-bottom-2 duration-150">
+            {/* Schedule Option */}
+            <button
+              type="button"
+              onClick={() => openCreateModal(true)}
+              className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs shadow-xl hover:bg-slate-50 transition-all group"
+            >
+              <span className="text-slate-700 group-hover:text-indigo-600 font-medium">Schedule for Later</span>
+              <div className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center shrink-0">
+                <Calendar className="w-4 h-4" />
+              </div>
+            </button>
+
+            {/* Launch Immediately Option */}
+            <button
+              type="button"
+              onClick={() => openCreateModal(false)}
+              className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs shadow-xl hover:bg-slate-50 transition-all group"
+            >
+              <span className="text-slate-700 group-hover:text-blue-600 font-medium">Launch Immediately</span>
+              <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center shrink-0">
+                <Zap className="w-4 h-4" />
+              </div>
+            </button>
+          </div>
+        )}
+
+        {/* Main Circular Floating Trigger Button */}
+        <button
+          type="button"
+          onClick={() => setShowSpeedDial(!showSpeedDial)}
+          className={`w-14 h-14 rounded-full text-white shadow-xl flex items-center justify-center transition-all ${
+            showSpeedDial
+              ? 'rotate-45 bg-slate-800 hover:bg-slate-900 shadow-slate-900/30'
+              : 'bg-blue-600 hover:bg-blue-700 hover:scale-105 shadow-blue-600/30'
+          }`}
+          title={showSpeedDial ? 'Close options' : 'Create or schedule an election'}
+          aria-label="Create or schedule election"
+        >
+          <Plus className="w-7 h-7 stroke-[2.5]" />
+        </button>
+      </div>
+
+      {/* ── Create / Schedule Poll Modal ────────────────────────────────────── */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
           <div className="max-h-[90vh] w-full max-w-xl flex flex-col rounded-xl bg-white shadow-xl border border-slate-200 overflow-hidden">
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-200 shrink-0 flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-900">Create New Election</h2>
+              <div className="flex items-center gap-2">
+                {isScheduleMode ? (
+                  <Calendar className="w-5 h-5 text-indigo-600" />
+                ) : (
+                  <Zap className="w-5 h-5 text-blue-600" />
+                )}
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">
+                    {isScheduleMode ? 'Schedule Future Election' : 'Launch Active Election'}
+                  </h2>
+                  <p className="text-[11px] text-slate-500">
+                    {isScheduleMode
+                      ? 'Set a future date/time for when voting opens automatically.'
+                      : 'Election will open immediately upon creation.'}
+                  </p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => { setShowCreateModal(false); resetForm(); }}
@@ -611,8 +732,57 @@ export default function Dashboard() {
               </button>
             </div>
 
+            {/* Mode Switcher Tabs inside modal */}
+            <div className="px-6 pt-4 shrink-0">
+              <div className="grid grid-cols-2 p-1 rounded-lg bg-slate-100 border border-slate-200 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setIsScheduleMode(false)}
+                  className={`py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5 ${
+                    !isScheduleMode ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Zap className="w-3.5 h-3.5 text-blue-600" /> Launch Immediately
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsScheduleMode(true);
+                    if (!scheduledStartsAt) {
+                      const inTwoHours = new Date(Date.now() + 2 * 3600 * 1000);
+                      const iso = new Date(inTwoHours.getTime() - inTwoHours.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                      setScheduledStartsAt(iso);
+                    }
+                  }}
+                  className={`py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5 ${
+                    isScheduleMode ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Calendar className="w-3.5 h-3.5 text-indigo-600" /> Schedule for Later
+                </button>
+              </div>
+            </div>
+
             {/* Scrollable Form Body */}
             <div className="p-6 overflow-y-auto space-y-5 flex-1 text-xs">
+              {/* Scheduled Start Time (When in schedule mode) */}
+              {isScheduleMode && (
+                <div className="p-4 rounded-lg bg-indigo-50/70 border border-indigo-100 space-y-2">
+                  <label className="block text-xs font-bold text-indigo-950 uppercase tracking-wider">
+                    Scheduled Voting Start Date &amp; Time *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={scheduledStartsAt}
+                    onChange={(e) => setScheduledStartsAt(e.target.value)}
+                    className="w-full app-input px-3 py-2 text-xs bg-white"
+                  />
+                  <p className="text-[11px] text-indigo-700">
+                    Voters will see a live countdown until this scheduled time. Ballots will open automatically.
+                  </p>
+                </div>
+              )}
+
               {/* Title */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
@@ -686,23 +856,25 @@ export default function Dashboard() {
                         )}
                       </div>
                     ))}
-                    <button
-                      type="button"
-                      onClick={() => setNewOptions([...newOptions, ''])}
-                      className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1 transition-colors"
-                    >
-                      <PlusCircle className="w-3.5 h-3.5" /> Add Candidate Option
-                    </button>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setNewOptions([...newOptions, ''])}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" /> Add Another Candidate
+                  </button>
                 </div>
               ) : (
                 /* Multi-Position Categories */
-                <div className="space-y-3">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Offices &amp; Candidates *
-                  </label>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      Position Offices &amp; Candidates *
+                    </label>
+                  </div>
                   {newCategories.map((cat, catIdx) => (
-                    <div key={catIdx} className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-2.5">
+                    <div key={catIdx} className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-3">
                       <div className="flex items-center justify-between gap-2">
                         <input
                           value={cat.title}
@@ -712,16 +884,16 @@ export default function Dashboard() {
                             setNewCategories(updated);
                           }}
                           placeholder="Position Title (e.g. President)"
-                          className="font-bold text-xs bg-white border border-slate-300 rounded-lg px-3 py-1.5 flex-1"
+                          className="font-bold text-xs app-input px-3 py-1.5 flex-1 bg-white"
                         />
                         {newCategories.length > 1 && (
                           <button
                             type="button"
                             onClick={() => setNewCategories(newCategories.filter((_, j) => j !== catIdx))}
-                            className="p-1 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                            className="p-1.5 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors shrink-0"
                             title="Remove position"
                           >
-                            <X className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>
@@ -799,7 +971,7 @@ export default function Dashboard() {
               {/* Duration */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Election Duration
+                  {isScheduleMode ? 'Active Voting Duration (From Start Time)' : 'Election Duration'}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
@@ -887,9 +1059,17 @@ export default function Dashboard() {
                 type="button"
                 onClick={handleCreatePoll}
                 disabled={isCreating}
-                className="flex-1 py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                className={`flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 text-white ${
+                  isScheduleMode ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-blue-600 hover:bg-blue-700'
+                }`}
               >
-                {isCreating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Launch Election'}
+                {isCreating ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : isScheduleMode ? (
+                  'Schedule Election'
+                ) : (
+                  'Launch Election'
+                )}
               </button>
             </div>
           </div>
@@ -928,7 +1108,7 @@ export default function Dashboard() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Description
+                  Description / Context
                 </label>
                 <textarea
                   value={editDescription}
@@ -938,37 +1118,24 @@ export default function Dashboard() {
                 />
               </div>
 
+              {/* Expiration date */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Duplicate Vote Tracking Criteria
-                </label>
-                <select
-                  value={editTracking}
-                  onChange={(e) => setEditTracking(e.target.value as TrackingMethod)}
-                  className="w-full app-input px-3 py-2 text-xs bg-white"
-                >
-                  {TRACKING_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Expiration Date &amp; Time *
+                  Scheduled Close Date &amp; Time *
                 </label>
                 <input
                   type="datetime-local"
                   value={editExpiresAt}
                   onChange={(e) => setEditExpiresAt(e.target.value)}
-                  className="w-full app-input px-3 py-2 text-xs bg-white font-mono"
+                  className="w-full app-input px-3 py-2 text-xs"
                 />
               </div>
 
+              {/* Results Visibility */}
               <div className="flex items-center justify-between p-3.5 rounded-lg bg-slate-50 border border-slate-200">
                 <div>
                   <p className="text-xs font-semibold text-slate-800">Public Live Standings</p>
-                  <p className="text-[11px] text-slate-500">Toggle whether voters can view live tallies.</p>
+                  <p className="text-[11px] text-slate-500">Allow voters to view live tally bars.</p>
                 </div>
                 <button
                   type="button"
@@ -979,13 +1146,14 @@ export default function Dashboard() {
                 </button>
               </div>
 
+              {/* Whitelist Settings */}
               <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
-                      <Lock className="w-3.5 h-3.5 text-amber-600" /> Restrict Access via Voter Whitelist
+                      <Lock className="w-3.5 h-3.5 text-amber-600" /> Restrict via Voter Whitelist
                     </p>
-                    <p className="text-[11px] text-slate-500">Only authorized individuals can vote.</p>
+                    <p className="text-[11px] text-slate-500">Only authorized roster IDs/emails can vote.</p>
                   </div>
                   <button
                     type="button"
@@ -999,13 +1167,13 @@ export default function Dashboard() {
                 {editRequireWhitelist && (
                   <div className="pt-2">
                     <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                      Allowed Identifiers (Emails, Student IDs, or Phones)
+                      Authorized Identifiers (Emails, IDs, or Phones)
                     </label>
                     <textarea
                       rows={3}
                       value={editAllowedVotersText}
                       onChange={(e) => setEditAllowedVotersText(e.target.value)}
-                      placeholder="student1@univ.edu, STU-2026-001, +1234567890"
+                      placeholder="student1@univ.edu, STU-2026-001"
                       className="w-full app-input px-3 py-2 text-xs resize-none font-mono"
                     />
                   </div>
@@ -1034,25 +1202,73 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── Delete Account Confirmation Modal ────────────────────────────── */}
+      {/* ── Share Modal ─────────────────────────────────────────────────────── */}
+      {shareLink && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
+          <div className="app-card max-w-md w-full p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-900 text-base">Share Voting Link</h3>
+              <button type="button" onClick={() => setShareLink(null)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Distribute this direct link to eligible voters via email, WhatsApp, Slack, or SMS:
+            </p>
+            <div className="flex gap-2">
+              <input
+                readOnly
+                value={shareLink}
+                className="flex-1 app-input px-3 py-2 text-xs font-mono text-slate-700 bg-slate-50 select-all"
+              />
+              <button
+                type="button"
+                onClick={handleCopy}
+                className={`px-3 py-2 rounded-lg font-semibold text-xs transition-colors shrink-0 ${
+                  copied
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+            <div className="pt-2 flex justify-end">
+              <a
+                href={shareLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              >
+                Open voter ballot page <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Account Confirmation Modal ───────────────────────────────── */}
       {showDeleteAccountModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
-          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl border border-slate-200 space-y-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-red-50 border border-red-200 flex items-center justify-center mx-auto text-red-600">
-              <AlertTriangle className="w-6 h-6" />
+          <div className="app-card max-w-md w-full p-6 space-y-4 shadow-xl border-red-200">
+            <div className="flex items-center gap-3 text-red-600">
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0 border border-red-100">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">Delete Organizer Account</h3>
+                <p className="text-[11px] text-red-600 font-medium">Permanent and Irreversible</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Delete Account?</h2>
-              <p className="text-xs text-slate-500 leading-relaxed mt-1">
-                Are you sure you want to permanently delete your organizer account? All created elections, voter rosters, and audit records will be purged.
-              </p>
-            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Are you sure you want to delete your Ballotly account? All created elections, voter whitelists, and ballot receipts will be permanently removed.
+            </p>
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setShowDeleteAccountModal(false)}
                 disabled={isDeletingAccount}
-                className="flex-1 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors"
+                className="flex-1 py-2 px-3 rounded-lg bg-white border border-slate-300 text-slate-700 font-semibold text-xs hover:bg-slate-50 transition-colors"
               >
                 Cancel
               </button>
@@ -1060,119 +1276,63 @@ export default function Dashboard() {
                 type="button"
                 onClick={handleDeleteAccount}
                 disabled={isDeletingAccount}
-                className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                className="flex-1 py-2 px-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
               >
-                {isDeletingAccount ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Yes, Delete Account'}
+                {isDeletingAccount ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Confirm Deletion'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Share Modal ────────────────────────────────────────────────────── */}
-      {shareLink && (
-        <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
-          <div className="app-card w-full max-w-md p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Share2 className="w-4 h-4 text-blue-600" /> Share Election Link
-              </h2>
-              <button
-                type="button"
-                onClick={() => setShareLink(null)}
-                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
-                title="Close modal"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-xs text-slate-500">Provide this direct link to eligible voters:</p>
-            <div className="flex gap-2">
-              <input
-                readOnly
-                value={shareLink}
-                className="flex-1 app-input px-3 py-2 text-xs font-mono text-slate-700"
-              />
-              <button
-                type="button"
-                onClick={handleCopy}
-                className={`px-3.5 py-2 rounded-lg font-semibold text-xs transition-colors shrink-0 ${
-                  copied ? 'bg-emerald-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
-              >
-                {copied ? 'Copied!' : 'Copy'}
-              </button>
-            </div>
-            <a
-              href={shareLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-colors"
-            >
-              <ExternalLink className="w-3.5 h-3.5" /> Open Ballot in New Tab
-            </a>
-          </div>
-        </div>
-      )}
-
-      {/* ── QR Code Modal ──────────────────────────────────────────────────── */}
+      {/* ── QR Code Modal ───────────────────────────────────────────────────── */}
       {qrModalPoll && (
-        <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
-          <div className="app-card w-full max-w-sm p-6 shadow-xl space-y-4 text-center">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <QrCode className="w-4 h-4 text-blue-600" /> Election QR Code
-              </h2>
-              <button
-                type="button"
-                onClick={() => setQrModalPoll(null)}
-                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
-                title="Close modal"
-              >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
+          <div className="app-card max-w-sm w-full p-6 space-y-4 shadow-xl text-center">
+            <div className="flex items-center justify-between text-left">
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">Election QR Code</h3>
+                <p className="text-[11px] text-slate-500 truncate max-w-[200px]">{qrModalPoll.title}</p>
+              </div>
+              <button type="button" onClick={() => setQrModalPoll(null)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-4 h-4" />
               </button>
             </div>
-
-            <div>
-              <p className="text-xs font-bold text-slate-900 line-clamp-1">{qrModalPoll.title}</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Scan to open digital ballot</p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-white border border-slate-200 inline-block mx-auto">
+            <div className="p-4 bg-white rounded-xl border border-slate-200 inline-block shadow-sm">
               <QRCodeCanvas
-                id="ballotly-qr-code-canvas"
+                id="election-qr-canvas"
                 value={`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/vote/${qrModalPoll.id}`}
-                size={180}
-                bgColor="#ffffff"
-                fgColor="#0f172a"
+                size={200}
                 level="H"
-                includeMargin={false}
+                includeMargin={true}
               />
             </div>
-
-            <div className="space-y-2">
+            <p className="text-xs text-slate-500">
+              Display or print this QR code for in-person polling stations and campus bulletin boards.
+            </p>
+            <div className="flex flex-col gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => {
-                  const canvas = document.getElementById('ballotly-qr-code-canvas') as HTMLCanvasElement;
-                  if (!canvas) return;
-                  const pngUrl = canvas.toDataURL('image/png');
-                  const downloadLink = document.createElement('a');
-                  downloadLink.href = pngUrl;
-                  downloadLink.download = `ballotly-qr-${qrModalPoll.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.png`;
-                  document.body.appendChild(downloadLink);
-                  downloadLink.click();
-                  document.body.removeChild(downloadLink);
+                  const canvas = document.getElementById('election-qr-canvas') as HTMLCanvasElement;
+                  if (canvas) {
+                    const pngUrl = canvas.toDataURL('image/png');
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = pngUrl;
+                    downloadLink.download = `ballotly-qr-${qrModalPoll.id}.png`;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                  }
                 }}
                 className="w-full py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
               >
-                <Download className="w-3.5 h-3.5" /> Download QR Code (PNG)
+                <Download className="w-3.5 h-3.5" /> Download QR Code PNG
               </button>
-
               <button
                 type="button"
                 onClick={async () => {
-                  const url = `${window.location.origin}/vote/${qrModalPoll.id}`;
+                  const url = `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/vote/${qrModalPoll.id}`;
                   await navigator.clipboard.writeText(url);
                   setQrCopied(true);
                   setTimeout(() => setQrCopied(false), 2000);
@@ -1207,8 +1367,16 @@ function PollCard({
   onOpenQr: (poll: PollItem) => void;
   onEdit: (poll: PollItem) => void;
 }) {
-  const expiresLabel = new Date(poll.expiresAt).toLocaleString();
-  const isActive = !poll.isExpired && new Date(poll.expiresAt) > new Date();
+  const now = new Date();
+  const startsDate = poll.startsAt ? new Date(poll.startsAt) : null;
+  const expiresDate = new Date(poll.expiresAt);
+
+  const isScheduled = Boolean(startsDate && startsDate > now && !poll.isExpired && expiresDate > now);
+  const isActive = Boolean((!startsDate || startsDate <= now) && !poll.isExpired && expiresDate > now);
+  const isClosed = !isScheduled && !isActive;
+
+  const expiresLabel = expiresDate.toLocaleString();
+  const startsLabel = startsDate ? startsDate.toLocaleString() : '';
 
   return (
     <div className="app-card p-6 space-y-4">
@@ -1217,11 +1385,20 @@ function PollCard({
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <h3 className="font-bold text-slate-900 text-base">{poll.title}</h3>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-              !isActive ? 'bg-slate-100 text-slate-500' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-            }`}>
-              {!isActive ? 'CLOSED' : 'ACTIVE'}
-            </span>
+            {isScheduled ? (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
+                <Calendar className="w-2.5 h-2.5" /> SCHEDULED
+              </span>
+            ) : isActive ? (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <Zap className="w-2.5 h-2.5" /> ACTIVE
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200">
+                CLOSED
+              </span>
+            )}
+
             {poll.requireWhitelist && (
               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
                 <Lock className="w-2.5 h-2.5" /> RESTRICTED
@@ -1231,7 +1408,7 @@ function PollCard({
           {poll.description && <p className="text-xs text-slate-500 line-clamp-1">{poll.description}</p>}
         </div>
         <div className="flex items-center gap-1.5 flex-wrap shrink-0 pt-1 sm:pt-0">
-          {isActive && (
+          {(isActive || isScheduled) && (
             <button
               type="button"
               onClick={() => onEdit(poll)}
@@ -1281,10 +1458,17 @@ function PollCard({
           <BarChart3 className="w-3.5 h-3.5 text-blue-600" />
           <strong className="text-slate-800 font-mono">{poll.voteCount}</strong> ballots cast
         </span>
-        <span className="flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5" />
-          {!isActive ? 'Closed' : 'Closes'} {expiresLabel}
-        </span>
+        {isScheduled ? (
+          <span className="flex items-center gap-1 text-indigo-700 font-medium">
+            <Calendar className="w-3.5 h-3.5" />
+            Opens {startsLabel}
+          </span>
+        ) : (
+          <span className="flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5" />
+            {isClosed ? 'Closed' : 'Closes'} {expiresLabel}
+          </span>
+        )}
         <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-medium border border-slate-200">
           {trackingLabel(poll.trackingMethod)}
         </span>

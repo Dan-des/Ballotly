@@ -10,6 +10,7 @@ import {
   Mail,
   Phone,
   Clock,
+  Calendar,
   Hash,
   CreditCard,
   BarChart3,
@@ -70,6 +71,19 @@ function formatCountdown(expiresAt: string) {
   };
 }
 
+function formatStartCountdown(startsAt: string) {
+  const diff = new Date(startsAt).getTime() - Date.now();
+  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, isStarted: true };
+  const s = Math.floor(diff / 1000);
+  return {
+    days: Math.floor(s / 86400),
+    hours: Math.floor((s % 86400) / 3600),
+    minutes: Math.floor((s % 3600) / 60),
+    seconds: s % 60,
+    isStarted: false,
+  };
+}
+
 export default function VotePage() {
   const params = useParams();
   const router = useRouter();
@@ -90,6 +104,7 @@ export default function VotePage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [timeLeft, setTimeLeft] = useState(formatCountdown(''));
+  const [startsLeft, setStartsLeft] = useState(formatStartCountdown(''));
 
   // Load poll data
   const fetchPoll = useCallback(async () => {
@@ -101,6 +116,9 @@ export default function VotePage() {
       if (data.success && data.poll) {
         setPoll(data.poll);
         setTimeLeft(formatCountdown(data.poll.expiresAt));
+        if (data.poll.startsAt) {
+          setStartsLeft(formatStartCountdown(data.poll.startsAt));
+        }
       } else {
         setNotFound(true);
       }
@@ -118,6 +136,9 @@ export default function VotePage() {
     if (!poll) return;
     const interval = setInterval(() => {
       setTimeLeft(formatCountdown(poll.expiresAt));
+      if (poll.startsAt) {
+        setStartsLeft(formatStartCountdown(poll.startsAt));
+      }
     }, 1000);
     return () => clearInterval(interval);
   }, [poll]);
@@ -228,7 +249,8 @@ export default function VotePage() {
   }
 
   const trackingInfo = getTrackingInfo(poll.trackingMethod);
-  const isClosed = timeLeft.isClosed || poll.isExpired;
+  const isUpcoming = Boolean(poll.startsAt && !startsLeft.isStarted && new Date(poll.startsAt).getTime() > Date.now());
+  const isClosed = !isUpcoming && (timeLeft.isClosed || poll.isExpired);
 
   // ── Main ballot ────────────────────────────────────────────────────────────
   return (
@@ -261,7 +283,21 @@ export default function VotePage() {
           </div>
 
           {/* Countdown */}
-          {!isClosed ? (
+          {isUpcoming ? (
+            <div className="flex items-center gap-2 text-xs text-indigo-900 bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-3">
+              <Calendar className="w-4 h-4 text-indigo-600 shrink-0" />
+              <span>
+                Voting Opens in{' '}
+                <strong className="text-indigo-950 font-mono">
+                  {startsLeft.days > 0 && `${startsLeft.days}d `}
+                  {String(startsLeft.hours).padStart(2, '0')}h{' '}
+                  {String(startsLeft.minutes).padStart(2, '0')}m{' '}
+                  {String(startsLeft.seconds).padStart(2, '0')}s
+                </strong>{' '}
+                ({new Date(poll.startsAt).toLocaleString()})
+              </span>
+            </div>
+          ) : !isClosed ? (
             <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
               <Clock className="w-4 h-4 text-blue-600 shrink-0" />
               <span>
@@ -292,8 +328,20 @@ export default function VotePage() {
           )}
         </div>
 
+        {/* Scheduled Preview notice if upcoming */}
+        {isUpcoming && (
+          <div className="app-card p-6 text-center space-y-2 border-indigo-200 bg-indigo-50/40">
+            <Calendar className="w-8 h-8 text-indigo-600 mx-auto" />
+            <h2 className="text-sm font-bold text-indigo-950">Election Scheduled for Later</h2>
+            <p className="text-xs text-indigo-800 max-w-md mx-auto leading-relaxed">
+              This election is scheduled to open for voting on <strong>{new Date(poll.startsAt).toLocaleString()}</strong>.
+              Please check back at that time to cast your ballot.
+            </p>
+          </div>
+        )}
+
         {/* Ballot form */}
-        {!isClosed && (
+        {!isClosed && !isUpcoming && (
           <form onSubmit={handleSubmit} className="app-card p-8 space-y-6">
             {/* Dynamic Identity Verification Section */}
             {trackingInfo.isConfigured && (
