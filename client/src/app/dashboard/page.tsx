@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   PlusCircle,
@@ -31,13 +32,14 @@ import {
 import { QRCodeCanvas } from 'qrcode.react';
 
 import { getApiBaseUrl } from '@/lib/api';
+import { PollCardSkeleton } from '@/components/SkeletonLoader';
 
 type TrackingMethod = 'email' | 'phone' | 'email_phone' | 'student_id' | 'email_studentid' | 'voter_id';
 
 const TRACKING_OPTIONS: { value: TrackingMethod; label: string; description: string }[] = [
-  { value: 'email',           label: 'Email Address',              description: 'Voters identified by email — prevents duplicate email submissions.' },
+  { value: 'email',           label: 'Email Address',              description: 'Voters identified by email: prevents duplicate email submissions.' },
   { value: 'phone',           label: 'Phone Number',               description: 'Voters identified by phone number.' },
-  { value: 'email_phone',     label: 'Email & Phone Number',       description: 'Both email and phone required — strongest dual verification.' },
+  { value: 'email_phone',     label: 'Email & Phone Number',       description: 'Both email and phone required: strongest dual verification.' },
   { value: 'student_id',      label: 'Student / Matriculation ID', description: 'Voters identified by their institutional student ID.' },
   { value: 'email_studentid', label: 'Email & Student ID',         description: 'Email and student ID both required.' },
   { value: 'voter_id',        label: 'Voter / Membership ID',      description: 'Custom ID for corporate boards, clubs, or union elections.' },
@@ -407,14 +409,19 @@ export default function Dashboard() {
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center justify-between gap-3 w-full sm:w-auto">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white border border-slate-200 p-0.5 shadow-md flex items-center justify-center shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.png" alt="Ballotly Logo" className="w-full h-full object-cover rounded-xl" />
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0">
+                <Image
+                  src="/logo.png"
+                  alt="Ballotly Logo"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] sm:text-xs font-extrabold text-indigo-600 uppercase tracking-wider">Ballotly</p>
-                <h1 className="text-sm sm:text-lg font-extrabold text-slate-900 leading-tight truncate">
-                  {adminUser?.name ? `Welcome, ${adminUser.name}` : 'Dashboard'}
+                <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Ballotly Platform</p>
+                <h1 className="text-sm sm:text-base font-bold text-slate-900 leading-tight truncate">
+                  {adminUser?.name ? `Welcome, ${adminUser.name}` : 'Organizer Dashboard'}
                 </h1>
               </div>
             </div>
@@ -422,32 +429,35 @@ export default function Dashboard() {
             {/* Profile menu button */}
             <div className="relative shrink-0" ref={dropdownRef}>
               <button
+                type="button"
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 text-slate-700 font-semibold text-xs transition-all shadow-sm"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-medium text-xs transition-colors"
               >
-                <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-[10px]">
-                  {adminUser?.name ? adminUser.name.charAt(0).toUpperCase() : <UserIcon className="w-3.5 h-3.5" />}
+                <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-[10px]">
+                  {adminUser?.name ? adminUser.name.charAt(0).toUpperCase() : <UserIcon className="w-3 h-3" />}
                 </div>
                 <span className="hidden sm:inline max-w-[100px] truncate">{adminUser?.name || 'Account'}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
               {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95">
-                  <div className="px-4 py-2 border-b border-slate-100">
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-lg shadow-lg py-1.5 z-50">
+                  <div className="px-3.5 py-2 border-b border-slate-100">
                     <p className="text-xs font-bold text-slate-800 truncate">{adminUser?.name || 'Admin User'}</p>
-                    <p className="text-[10px] text-slate-400 truncate">{adminUser?.email || ''}</p>
+                    <p className="text-[11px] text-slate-400 truncate">{adminUser?.email || ''}</p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => { setShowProfileMenu(false); handleLogout(); }}
-                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors"
+                    className="w-full text-left px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors"
                   >
                     <LogOut className="w-4 h-4 text-slate-400" />
                     Sign Out
                   </button>
                   <button
+                    type="button"
                     onClick={() => { setShowProfileMenu(false); setShowDeleteAccountModal(true); }}
-                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors border-t border-slate-100"
+                    className="w-full text-left px-3.5 py-2 text-xs font-medium text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors border-t border-slate-100"
                   >
                     <UserX className="w-4 h-4 text-red-500" />
                     Delete Account
@@ -459,44 +469,45 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
+              type="button"
               onClick={() => { setShowCreateModal(true); setFeedbackMsg(null); }}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs sm:text-sm transition-all shadow-lg shadow-indigo-600/20"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors"
             >
               <PlusCircle className="w-4 h-4" />
-              New Poll
+              Create New Election
             </button>
           </div>
         </header>
 
         {/* ── Feedback Banner ──────────────────────────────────────────────── */}
         {feedbackMsg && (
-          <div className={`flex items-center justify-between gap-3 px-5 py-4 rounded-2xl text-sm font-medium ${
+          <div className={`flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-xs font-medium ${
             feedbackMsg.type === 'success'
-              ? 'bg-green-50 border border-green-200 text-green-700'
+              ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
               : 'bg-red-50 border border-red-200 text-red-700'
           }`}>
             <div className="flex items-center gap-2">
-              {feedbackMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+              {feedbackMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertCircle className="w-4 h-4 text-red-600" />}
               {feedbackMsg.text}
             </div>
-            <button onClick={() => setFeedbackMsg(null)}><X className="w-4 h-4" /></button>
+            <button type="button" onClick={() => setFeedbackMsg(null)}><X className="w-4 h-4" /></button>
           </div>
         )}
 
         {/* ── Summary Metrics ──────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           {[
-            { label: 'Total Polls', value: polls.length, icon: Layers, color: 'blue' },
-            { label: 'Active Polls', value: activePolls.length, icon: Sparkles, color: 'emerald' },
-            { label: 'Total Votes', value: polls.reduce((s, p) => s + p.voteCount, 0).toLocaleString(), icon: BarChart3, color: 'violet' },
-          ].map(({ label, value, icon: Icon, color }) => (
-            <div key={label} className="glass-panel p-5 rounded-3xl flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-2xl bg-${color}-50 border border-${color}-100 flex items-center justify-center shrink-0`}>
-                <Icon className={`w-5 h-5 text-${color}-500`} />
+            { label: 'Total Elections', value: polls.length, icon: Layers },
+            { label: 'Active Elections', value: activePolls.length, icon: Sparkles },
+            { label: 'Total Ballots Cast', value: polls.reduce((s, p) => s + p.voteCount, 0).toLocaleString(), icon: BarChart3 },
+          ].map(({ label, value, icon: Icon }) => (
+            <div key={label} className="app-card p-5 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 text-blue-600">
+                <Icon className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 font-semibold">{label}</p>
-                <p className="text-2xl font-extrabold text-slate-900">{value}</p>
+                <p className="text-xs text-slate-500 font-semibold uppercase">{label}</p>
+                <p className="text-2xl font-bold text-slate-900 font-mono">{value}</p>
               </div>
             </div>
           ))}
@@ -505,20 +516,21 @@ export default function Dashboard() {
         {/* ── Active Polls ─────────────────────────────────────────────────── */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-800">Active Polls</h2>
-            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">
+            <h2 className="text-base font-bold text-slate-900">Active Elections</h2>
+            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
               {activePolls.length} running
             </span>
           </div>
 
           {isLoadingPolls ? (
-            <div className="glass-panel p-10 rounded-3xl flex items-center justify-center">
-              <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+            <div className="space-y-4">
+              <PollCardSkeleton />
+              <PollCardSkeleton />
             </div>
           ) : activePolls.length === 0 ? (
-            <div className="glass-panel p-10 rounded-3xl text-center text-slate-400">
-              <Layers className="w-10 h-10 mx-auto mb-3 opacity-40" />
-              <p className="font-medium">No active polls. Create one to get started.</p>
+            <div className="app-card p-10 text-center text-slate-400 space-y-2">
+              <Layers className="w-8 h-8 mx-auto text-slate-300" />
+              <p className="text-xs font-medium text-slate-500">No active elections. Create a new election to begin.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -1202,50 +1214,66 @@ function PollCard({
   const isActive = !poll.isExpired && new Date(poll.expiresAt) > new Date();
 
   return (
-    <div className="glass-panel p-5 sm:p-6 rounded-3xl space-y-4">
+    <div className="app-card p-6 space-y-4">
       {/* Header row */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <h3 className="font-bold text-slate-900 text-base">{poll.title}</h3>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-              !isActive ? 'bg-slate-100 text-slate-400' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+              !isActive ? 'bg-slate-100 text-slate-500' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
             }`}>
               {!isActive ? 'CLOSED' : 'ACTIVE'}
             </span>
             {poll.requireWhitelist && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
                 <Lock className="w-2.5 h-2.5" /> RESTRICTED
               </span>
             )}
           </div>
-          {poll.description && <p className="text-xs text-slate-400 line-clamp-1">{poll.description}</p>}
+          {poll.description && <p className="text-xs text-slate-500 line-clamp-1">{poll.description}</p>}
         </div>
         <div className="flex items-center gap-1.5 flex-wrap shrink-0 pt-1 sm:pt-0">
           {isActive && (
             <button
+              type="button"
               onClick={() => onEdit(poll)}
-              className="p-2 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 hover:bg-amber-100 transition-colors"
-              title="Edit poll details"
+              className="p-1.5 rounded-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              title="Edit election details"
             >
-              <Edit3 className="w-4 h-4" />
+              <Edit3 className="w-3.5 h-3.5" />
             </button>
           )}
-          <button onClick={() => onOpenQr(poll)}
-            className="p-2 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-100 transition-colors" title="View & Download QR Code">
-            <QrCode className="w-4 h-4" />
+          <button
+            type="button"
+            onClick={() => onOpenQr(poll)}
+            className="p-1.5 rounded-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            title="View & Download QR Code"
+          >
+            <QrCode className="w-3.5 h-3.5" />
           </button>
-          <button onClick={() => onShare(poll.id)}
-            className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-500 hover:bg-blue-100 transition-colors" title="Share voting link">
-            <Share2 className="w-4 h-4" />
+          <button
+            type="button"
+            onClick={() => onShare(poll.id)}
+            className="p-1.5 rounded-md bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 transition-colors"
+            title="Share voting link"
+          >
+            <Share2 className="w-3.5 h-3.5" />
           </button>
-          <Link href={`/dashboard/polls/${poll.id}/results`}
-            className="p-2 rounded-xl bg-violet-50 border border-violet-100 text-violet-500 hover:bg-violet-100 transition-colors" title="View detailed results">
-            <BarChart3 className="w-4 h-4" />
+          <Link
+            href={`/dashboard/polls/${poll.id}/results`}
+            className="p-1.5 rounded-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            title="View detailed audit results"
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
           </Link>
-          <button onClick={() => onDelete(poll.id)}
-            className="p-2 rounded-xl bg-red-50 border border-red-100 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors" title="Delete poll">
-            <Trash2 className="w-4 h-4" />
+          <button
+            type="button"
+            onClick={() => onDelete(poll.id)}
+            className="p-1.5 rounded-md bg-white border border-slate-200 text-red-600 hover:bg-red-50 transition-colors"
+            title="Delete election"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -1253,40 +1281,41 @@ function PollCard({
       {/* Meta row */}
       <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
         <span className="flex items-center gap-1">
-          <BarChart3 className="w-3.5 h-3.5" />
-          <strong className="text-slate-700">{poll.voteCount}</strong> votes
+          <BarChart3 className="w-3.5 h-3.5 text-blue-600" />
+          <strong className="text-slate-800 font-mono">{poll.voteCount}</strong> ballots cast
         </span>
         <span className="flex items-center gap-1">
           <Clock className="w-3.5 h-3.5" />
           {!isActive ? 'Closed' : 'Closes'} {expiresLabel}
         </span>
-        <span className="bg-blue-50 border border-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium">
+        <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-medium border border-slate-200">
           {trackingLabel(poll.trackingMethod)}
         </span>
       </div>
 
       {/* Options chips */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {poll.options.map((opt) => (
-          <span key={opt} className="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-medium">
+          <span key={opt} className="text-xs bg-slate-50 text-slate-700 border border-slate-200 px-2.5 py-0.5 rounded font-medium">
             {opt}
           </span>
         ))}
       </div>
 
       {/* Results toggle */}
-      <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-        <div className="flex items-center gap-2 text-xs text-slate-500">
-          {poll.isResultPublic ? <Eye className="w-3.5 h-3.5 text-emerald-500" /> : <EyeOff className="w-3.5 h-3.5 text-slate-400" />}
-          Live results: <span className={`font-bold ${poll.isResultPublic ? 'text-emerald-600' : 'text-slate-500'}`}>
+      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+        <div className="flex items-center gap-1.5 text-xs text-slate-500">
+          {poll.isResultPublic ? <Eye className="w-3.5 h-3.5 text-emerald-600" /> : <EyeOff className="w-3.5 h-3.5 text-slate-400" />}
+          Live results: <span className={`font-semibold ${poll.isResultPublic ? 'text-emerald-700' : 'text-slate-500'}`}>
             {poll.isResultPublic ? 'PUBLIC' : 'PRIVATE'}
           </span>
         </div>
         <button
+          type="button"
           onClick={() => onToggleResults(poll.id)}
-          className={`text-xs font-semibold px-3 py-1.5 rounded-xl transition-all ${
+          className={`text-xs font-semibold px-2.5 py-1 rounded-md transition-colors ${
             poll.isResultPublic
-              ? 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
           }`}
         >

@@ -2,23 +2,23 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import Image from 'next/image';
+import { useParams, useRouter } from 'next/navigation';
 import {
-  CheckCircle2,
   AlertCircle,
   Loader2,
-  Vote as VoteIcon,
   Mail,
   Phone,
   Clock,
   Hash,
   CreditCard,
   BarChart3,
-  ArrowRight,
-  LockIcon,
+  Lock,
 } from 'lucide-react';
 
 import { getApiBaseUrl } from '@/lib/api';
+import { BallotFormSkeleton } from '@/components/SkeletonLoader';
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^\+?[\d\s\-().]{7,20}$/;
 
@@ -37,12 +37,6 @@ interface Poll {
   voteCount: number;
 }
 
-interface SubmittedVote {
-  id: string;
-  selectedOption: string;
-  timestamp: string;
-}
-
 function getTrackingInfo(method: string | undefined) {
   const m = String(method || '').toLowerCase().replace(/[^a-z0-9]/g, '_');
   const needsEmail = m.includes('email') || m === 'both';
@@ -53,12 +47,12 @@ function getTrackingInfo(method: string | undefined) {
   const isConfigured = !isNone && (needsEmail || needsPhone || needsStudentId || needsVoterId);
 
   let label = 'IDENTITY VERIFICATION';
-  if (needsEmail && needsPhone) label = 'IDENTITY VERIFICATION — Email & Phone Number';
-  else if (needsEmail && needsStudentId) label = 'IDENTITY VERIFICATION — Email & Student ID';
-  else if (needsEmail) label = 'IDENTITY VERIFICATION — Email Address';
-  else if (needsPhone) label = 'IDENTITY VERIFICATION — Phone Number';
-  else if (needsStudentId) label = 'IDENTITY VERIFICATION — Student / Matriculation ID';
-  else if (needsVoterId) label = 'IDENTITY VERIFICATION — Voter / Membership ID';
+  if (needsEmail && needsPhone) label = 'IDENTITY VERIFICATION: Email & Phone Number';
+  else if (needsEmail && needsStudentId) label = 'IDENTITY VERIFICATION: Email & Student ID';
+  else if (needsEmail) label = 'IDENTITY VERIFICATION: Email Address';
+  else if (needsPhone) label = 'IDENTITY VERIFICATION: Phone Number';
+  else if (needsStudentId) label = 'IDENTITY VERIFICATION: Student / Matriculation ID';
+  else if (needsVoterId) label = 'IDENTITY VERIFICATION: Voter / Membership ID';
 
   return { normalized: m, needsEmail, needsPhone, needsStudentId, needsVoterId, isConfigured, label };
 }
@@ -78,6 +72,7 @@ function formatCountdown(expiresAt: string) {
 
 export default function VotePage() {
   const params = useParams();
+  const router = useRouter();
   const pollId = params?.pollId as string;
 
   const [poll, setPoll] = useState<Poll | null>(null);
@@ -93,7 +88,6 @@ export default function VotePage() {
   const [voterId, setVoterId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successVote, setSuccessVote] = useState<SubmittedVote | null>(null);
 
   const [timeLeft, setTimeLeft] = useState(formatCountdown(''));
 
@@ -135,7 +129,7 @@ export default function VotePage() {
 
     const trackingInfo = getTrackingInfo(poll.trackingMethod);
 
-    // Dynamic Client-side Validation
+    // Client-side Validation
     if (trackingInfo.needsEmail) {
       if (!voterEmail.trim()) return setErrorMessage('Email address is required.');
       if (!EMAIL_REGEX.test(voterEmail.trim())) return setErrorMessage('Please enter a valid email address.');
@@ -192,8 +186,8 @@ export default function VotePage() {
       if (!res.ok || !data.success) {
         setErrorMessage(data.error || 'Vote submission failed.');
       } else {
-        setSuccessVote(data.data);
-        setPoll((p) => p ? { ...p, voteCount: p.voteCount + 1 } : p);
+        const receiptId = data.data?.id || `REC-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+        router.push(`/thank-you?pollId=${poll.id}&title=${encodeURIComponent(poll.title)}&receipt=${receiptId}&isPublic=${poll.isResultPublic}`);
       }
     } catch {
       setErrorMessage('Unable to connect to voting server.');
@@ -202,52 +196,32 @@ export default function VotePage() {
     }
   };
 
-  // ── Loading ────────────────────────────────────────────────────────────────
+  // ── Loading with Skeleton ──────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+      <main className="min-h-screen px-4 py-16">
+        <BallotFormSkeleton />
       </main>
     );
   }
 
   if (notFound || !poll) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-4">
-        <div className="glass-panel p-10 rounded-3xl text-center max-w-md w-full">
-          <AlertCircle className="w-14 h-14 text-red-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-slate-800 mb-2">Poll Not Found</h1>
-          <p className="text-slate-500 text-sm">This poll link is invalid or has been removed.</p>
-        </div>
-      </main>
-    );
-  }
-
-  // ── Success state ──────────────────────────────────────────────────────────
-  if (successVote) {
-    return (
-      <main className="min-h-screen flex items-center justify-center px-4 py-12">
-        <div className="glass-panel p-10 rounded-3xl max-w-lg w-full text-center space-y-6">
-          <div className="w-20 h-20 rounded-full bg-green-50 border-2 border-green-200 flex items-center justify-center mx-auto">
-            <CheckCircle2 className="w-10 h-10 text-green-500" />
+      <main className="min-h-[80vh] flex items-center justify-center px-4 py-16">
+        <div className="app-card p-10 text-center max-w-md w-full space-y-4">
+          <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-6 h-6" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">Vote Submitted!</h1>
-            <p className="text-slate-500 text-sm">Your vote has been securely recorded.</p>
+          <h1 className="text-xl font-bold text-slate-900">Poll Not Found</h1>
+          <p className="text-slate-500 text-xs">This election link is invalid or has been concluded.</p>
+          <div className="pt-2">
+            <Link
+              href="/"
+              className="inline-block py-2 px-4 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition-colors"
+            >
+              Return Home
+            </Link>
           </div>
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl px-5 py-4 text-left space-y-1">
-            <p className="text-xs text-blue-500 font-semibold uppercase tracking-wider">Your Choice</p>
-            <p className="text-slate-800 font-semibold">{successVote.selectedOption}</p>
-            <p className="text-xs text-slate-400">{new Date(successVote.timestamp).toLocaleString()}</p>
-          </div>
-          <Link
-            href={`/vote/${pollId}/live-results`}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-600/20"
-          >
-            <BarChart3 className="w-4 h-4" />
-            View Live Results
-            <ArrowRight className="w-4 h-4" />
-          </Link>
         </div>
       </main>
     );
@@ -263,47 +237,56 @@ export default function VotePage() {
 
         {/* Platform badge */}
         <div className="text-center flex flex-col items-center">
-          <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 p-0.5 shadow-lg shadow-indigo-500/10 mb-2 flex items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Ballotly Logo" className="w-full h-full object-cover rounded-xl" />
+          <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 p-1 mb-2 flex items-center justify-center">
+            <Image
+              src="/logo.png"
+              alt="Ballotly Logo"
+              width={40}
+              height={40}
+              className="w-full h-full object-contain"
+            />
           </div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-extrabold">
-            Ballotly Secure Ballot
+          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold">
+            Official Ballotly Election
           </span>
         </div>
 
         {/* Poll header */}
-        <div className="glass-panel p-8 rounded-3xl">
-          <h1 className="text-2xl font-extrabold text-slate-900 mb-2">{poll.title}</h1>
-          {poll.description && <p className="text-slate-500 text-sm leading-relaxed mb-4">{poll.description}</p>}
+        <div className="app-card p-8 space-y-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{poll.title}</h1>
+            {poll.description && (
+              <p className="text-slate-600 text-sm leading-relaxed mt-1">{poll.description}</p>
+            )}
+          </div>
 
           {/* Countdown */}
           {!isClosed ? (
-            <div className="flex items-center gap-2 text-xs text-slate-500 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3">
-              <Clock className="w-4 h-4 text-blue-500 shrink-0" />
+            <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+              <Clock className="w-4 h-4 text-blue-600 shrink-0" />
               <span>
-                Closes in{' '}
-                <span className="font-bold text-blue-700">
+                Election Closes in{' '}
+                <strong className="text-slate-900 font-mono">
                   {timeLeft.days > 0 && `${timeLeft.days}d `}
                   {String(timeLeft.hours).padStart(2, '0')}h{' '}
                   {String(timeLeft.minutes).padStart(2, '0')}m{' '}
                   {String(timeLeft.seconds).padStart(2, '0')}s
-                </span>
+                </strong>
               </span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-xs text-slate-500 bg-red-50 border border-red-100 rounded-2xl px-4 py-3">
-              <LockIcon className="w-4 h-4 text-red-400 shrink-0" />
-              <span className="font-semibold text-red-600">This poll has closed. Voting is no longer accepted.</span>
+            <div className="flex items-center gap-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+              <Lock className="w-4 h-4 text-red-600 shrink-0" />
+              <span className="font-semibold">This poll has closed. Voting is no longer accepted.</span>
             </div>
           )}
 
           {/* Whitelist restriction badge */}
           {poll.requireWhitelist && (
-            <div className="mt-3 flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-2.5">
-              <LockIcon className="w-4 h-4 text-amber-600 shrink-0" />
+            <div className="flex items-center gap-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5">
+              <Lock className="w-4 h-4 text-amber-600 shrink-0" />
               <span>
-                <strong>Restricted Election:</strong> Voting is limited to authorized voters on the official whitelist.
+                <strong>Restricted Election:</strong> Voting is limited to authorized individuals on the pre-approved whitelist roster.
               </span>
             </div>
           )}
@@ -311,11 +294,11 @@ export default function VotePage() {
 
         {/* Ballot form */}
         {!isClosed && (
-          <form onSubmit={handleSubmit} className="glass-panel p-8 rounded-3xl space-y-6">
+          <form onSubmit={handleSubmit} className="app-card p-8 space-y-6">
             {/* Dynamic Identity Verification Section */}
             {trackingInfo.isConfigured && (
-              <div className="space-y-4">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <div className="space-y-4 pb-4 border-b border-slate-100">
+                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   {trackingInfo.label}
                 </p>
 
@@ -330,10 +313,10 @@ export default function VotePage() {
                         type="email"
                         value={voterEmail}
                         onChange={(e) => setVoterEmail(e.target.value)}
-                        placeholder="your@email.com"
-                        className="w-full glass-input rounded-2xl px-4 py-3 pl-11 text-sm"
+                        placeholder="your.email@university.edu"
+                        className="w-full app-input px-4 py-2.5 pl-11 text-sm"
                       />
-                      <Mail className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-4 top-3" />
                     </div>
                   </div>
                 )}
@@ -349,10 +332,10 @@ export default function VotePage() {
                         type="tel"
                         value={voterPhone}
                         onChange={(e) => setVoterPhone(e.target.value)}
-                        placeholder="+234 800 000 0000"
-                        className="w-full glass-input rounded-2xl px-4 py-3 pl-11 text-sm"
+                        placeholder="+1 234 567 8900"
+                        className="w-full app-input px-4 py-2.5 pl-11 text-sm"
                       />
-                      <Phone className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
+                      <Phone className="w-4 h-4 text-slate-400 absolute left-4 top-3" />
                     </div>
                   </div>
                 )}
@@ -369,9 +352,9 @@ export default function VotePage() {
                         value={studentId}
                         onChange={(e) => setStudentId(e.target.value)}
                         placeholder="e.g. CSC/2021/001"
-                        className="w-full glass-input rounded-2xl px-4 py-3 pl-11 text-sm uppercase"
+                        className="w-full app-input px-4 py-2.5 pl-11 text-sm uppercase font-mono"
                       />
-                      <Hash className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
+                      <Hash className="w-4 h-4 text-slate-400 absolute left-4 top-3" />
                     </div>
                   </div>
                 )}
@@ -387,10 +370,10 @@ export default function VotePage() {
                         type="text"
                         value={voterId}
                         onChange={(e) => setVoterId(e.target.value)}
-                        placeholder="e.g. MEM-2024-0099"
-                        className="w-full glass-input rounded-2xl px-4 py-3 pl-11 text-sm"
+                        placeholder="e.g. MEM-2026-0099"
+                        className="w-full app-input px-4 py-2.5 pl-11 text-sm"
                       />
-                      <CreditCard className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
+                      <CreditCard className="w-4 h-4 text-slate-400 absolute left-4 top-3" />
                     </div>
                   </div>
                 )}
@@ -400,23 +383,22 @@ export default function VotePage() {
             {/* Voting Options / Categories */}
             {poll.categories && poll.categories.length > 0 ? (
               <div className="space-y-6">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Cast Your Ballot Across All Positions
                 </p>
                 {poll.categories.map((cat) => (
-                  <div key={cat.title} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                    <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                      <VoteIcon className="w-4 h-4 text-indigo-600" />
+                  <div key={cat.title} className="p-5 rounded-lg bg-slate-50 border border-slate-200 space-y-3">
+                    <h3 className="font-bold text-sm text-slate-900">
                       Position: {cat.title}
                     </h3>
                     <div className="space-y-2">
                       {cat.options.map((opt) => (
                         <label
                           key={opt}
-                          className={`flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                             categorySelections[cat.title] === opt
-                              ? 'border-indigo-500 bg-indigo-50/70 font-semibold text-indigo-950'
-                              : 'border-slate-200 bg-white hover:border-indigo-200 text-slate-700'
+                              ? 'border-blue-600 bg-blue-50/50 font-semibold text-blue-900'
+                              : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
                           }`}
                         >
                           <input
@@ -425,7 +407,7 @@ export default function VotePage() {
                             value={opt}
                             checked={categorySelections[cat.title] === opt}
                             onChange={() => setCategorySelections((prev) => ({ ...prev, [cat.title]: opt }))}
-                            className="accent-indigo-600 w-4 h-4 shrink-0"
+                            className="accent-blue-600 w-4 h-4 shrink-0"
                           />
                           <span className="text-xs">{opt}</span>
                         </label>
@@ -436,15 +418,15 @@ export default function VotePage() {
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cast Your Vote</p>
+                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Select Candidate</p>
                 {poll.options.map((option) => (
                   <label
                     key={option}
                     htmlFor={`option-${option}`}
-                    className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                    className={`flex items-center gap-3 p-3.5 rounded-lg border cursor-pointer transition-colors ${
                       selectedOption === option
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-slate-200 bg-white hover:border-blue-200 hover:bg-blue-50/40'
+                        ? 'border-blue-600 bg-blue-50/50 font-semibold text-blue-900'
+                        : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
                     }`}
                   >
                     <input
@@ -456,10 +438,7 @@ export default function VotePage() {
                       onChange={() => setSelectedOption(option)}
                       className="accent-blue-600 w-4 h-4 shrink-0"
                     />
-                    <div className="flex items-center gap-2">
-                      <VoteIcon className="w-4 h-4 text-blue-400 shrink-0" />
-                      <span className="text-sm font-semibold text-slate-800">{option}</span>
-                    </div>
+                    <span className="text-sm text-slate-800">{option}</span>
                   </label>
                 ))}
               </div>
@@ -467,8 +446,8 @@ export default function VotePage() {
 
             {/* Error */}
             {errorMessage && (
-              <div className="flex items-start gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm">
-                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{errorMessage}</span>
               </div>
             )}
@@ -477,33 +456,32 @@ export default function VotePage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-4 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3.5 px-6 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isSubmitting ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <>
-                  <VoteIcon className="w-5 h-5" />
-                  Submit My Vote
-                </>
+                'Submit Ballot'
               )}
             </button>
           </form>
         )}
 
         {/* Live results link */}
-        <div className="text-center">
-          <Link
-            href={`/vote/${pollId}/live-results`}
-            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-semibold transition-colors"
-          >
-            <BarChart3 className="w-4 h-4" />
-            View Live Results
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
+        {poll.isResultPublic && (
+          <div className="text-center pt-2">
+            <Link
+              href={`/vote/${pollId}/live-results`}
+              className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-semibold transition-colors"
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              View Live Results
+            </Link>
+          </div>
+        )}
 
       </div>
     </main>
   );
 }
+

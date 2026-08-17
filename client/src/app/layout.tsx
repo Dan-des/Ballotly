@@ -1,22 +1,60 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import type { Metadata, Viewport } from 'next';
+import { Plus_Jakarta_Sans } from 'next/font/google';
+import Footer from '@/components/Footer';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '500', '600', '700', '800'],
+});
+
+export const viewport: Viewport = {
+  themeColor: '#2563eb',
+  width: 'device-width',
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
-  title: 'Ballotly — Secure Digital Elections & Voting Platform',
-  description: 'Ballotly is the smart, transparent platform for running secure elections, polls, and governance votes at any scale.',
-  keywords: ['Ballotly', 'Online Voting', 'Elections', 'Student Voting', 'Governance', 'PWA', 'Polls'],
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://ballotlyng.vercel.app'),
+  title: {
+    default: 'Ballotly | Secure Digital Elections & Voting Platform',
+    template: '%s | Ballotly',
+  },
+  description: 'Cryptographically verified institutional voting platform for transparent campus elections, student councils, and governance ballots.',
+  keywords: ['Ballotly', 'Online Voting Platform', 'Student Elections', 'Campus Voting', 'Governance Polls', 'Progressive Web App', 'Election Audit Log'],
+  authors: [{ name: 'Ballotly Platform Team' }],
   manifest: '/manifest.json',
   icons: {
     icon: '/logo.png',
     shortcut: '/icon.png',
     apple: '/apple-touch-icon.png',
   },
+  openGraph: {
+    title: 'Ballotly | Secure Digital Elections & Voting Platform',
+    description: 'Cryptographically verified institutional voting platform for transparent campus elections and governance ballots.',
+    url: 'https://ballotlyng.vercel.app',
+    siteName: 'Ballotly',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'Ballotly Platform Logo',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Ballotly | Secure Digital Elections & Voting Platform',
+    description: 'Cryptographically verified institutional voting platform for transparent campus elections and governance ballots.',
+    images: ['/logo.png'],
+  },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: 'Ballotly',
   },
 };
@@ -29,11 +67,16 @@ export default function RootLayout({
   return (
     <html lang="en" className="light" suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#4f46e5" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
-      <body suppressHydrationWarning className={`${inter.className} min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased selection:bg-indigo-600 selection:text-white`}>
-        {children}
+      <body
+        suppressHydrationWarning
+        className={`${plusJakartaSans.className} min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased selection:bg-blue-600 selection:text-white`}
+      >
+        <div className="flex-1 flex flex-col">
+          {children}
+        </div>
+        <Footer />
         <script
           dangerouslySetInnerHTML={{
             __html: `

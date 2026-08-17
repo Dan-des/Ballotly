@@ -3,9 +3,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ShieldCheck, ArrowLeft, BarChart3, Clock, Users, RefreshCw, Lock, Printer, Download } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, BarChart3, Clock, Users, Lock, Printer, Download } from 'lucide-react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+import { getApiBaseUrl } from '@/lib/api';
+import { TableRowSkeleton } from '@/components/SkeletonLoader';
 
 interface ResponseItem {
   id: string;
@@ -46,7 +47,7 @@ export default function AdminDetailedResultsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/polls/${pollId}/admin-results`, {
+      const res = await fetch(`${getApiBaseUrl()}/polls/${pollId}/admin-results`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       const resData = await res.json();
@@ -108,10 +109,12 @@ export default function AdminDetailedResultsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-slate-500 print:hidden">
-        <div className="flex flex-col items-center gap-3">
-          <RefreshCw className="w-8 h-8 animate-spin text-blue-400" />
-          <span className="text-sm font-medium">Loading audit results...</span>
+      <div className="max-w-4xl mx-auto px-4 py-12 space-y-6">
+        <div className="app-card p-8 space-y-4">
+          <div className="h-6 w-48 rounded skeleton-shimmer" />
+          <TableRowSkeleton columns={3} />
+          <TableRowSkeleton columns={3} />
+          <TableRowSkeleton columns={3} />
         </div>
       </div>
     );
@@ -119,11 +122,15 @@ export default function AdminDetailedResultsPage() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 print:hidden">
-        <div className="glass-panel p-10 rounded-3xl text-center max-w-md w-full space-y-4">
-          <Lock className="w-10 h-10 text-red-400 mx-auto" />
-          <p className="text-slate-700 font-semibold">{error || 'No data available.'}</p>
-          <Link href="/dashboard" className="text-sm text-blue-600 underline">Back to Dashboard</Link>
+      <div className="min-h-[80vh] flex items-center justify-center px-4 print:hidden">
+        <div className="app-card p-10 text-center max-w-md w-full space-y-4">
+          <Lock className="w-10 h-10 text-red-500 mx-auto" />
+          <p className="text-slate-800 text-sm font-semibold">{error || 'No election data available.'}</p>
+          <div>
+            <Link href="/dashboard" className="text-xs font-semibold text-blue-600 hover:underline">
+              ← Back to Dashboard
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -134,87 +141,89 @@ export default function AdminDetailedResultsPage() {
   );
 
   return (
-    <main className="min-h-screen px-4 py-10 bg-slate-50 print:bg-white print:py-0 print:px-0">
+    <main className="min-h-screen px-4 py-10 print:py-0 print:px-0">
       <div className="max-w-4xl mx-auto space-y-6 print:max-w-none print:space-y-4">
 
         {/* Header - Hidden on Print */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
-          <Link href="/dashboard" className="inline-flex items-center gap-2 text-xs sm:text-sm text-slate-600 hover:text-indigo-600 font-bold transition-colors">
+          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-blue-600 font-semibold transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
           <div className="flex items-center gap-2 flex-wrap">
             <button
+              type="button"
               onClick={handleExportCSV}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-700 font-bold text-xs transition-all shadow-sm"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-800 font-semibold text-xs transition-colors"
             >
-              <Download className="w-3.5 h-3.5 text-emerald-600" />
+              <Download className="w-3.5 h-3.5 text-emerald-700" />
               Export CSV
             </button>
             <button
+              type="button"
               onClick={handlePrint}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all shadow-sm"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors"
             >
               <Printer className="w-3.5 h-3.5 text-slate-600" />
-              Print Report
+              Print Audit Certificate
             </button>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-extrabold">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Audit Log
+              Verified Audit Log
             </span>
           </div>
         </div>
 
         {/* Print Only Header Banner */}
-        <div className="hidden print:block border-b pb-4 mb-4">
-          <h1 className="text-xl font-bold text-slate-900">Official Election Audit Report</h1>
+        <div className="hidden print:block border-b border-slate-300 pb-4 mb-4">
+          <h1 className="text-xl font-bold text-slate-900">Official Election Audit Certificate</h1>
           <p className="text-xs text-slate-500">Generated on {new Date().toLocaleString()}</p>
         </div>
 
         {/* Poll overview card */}
-        <div className="glass-panel p-8 rounded-3xl print:border print:shadow-none print:rounded-none print:p-4">
-          <h1 className="text-2xl font-extrabold text-slate-900 mb-1">{data.poll.title}</h1>
-          {data.poll.description && <p className="text-sm text-slate-500 mb-4">{data.poll.description}</p>}
-          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
+        <div className="app-card p-8 print:border print:shadow-none print:rounded-none print:p-4 space-y-3">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{data.poll.title}</h1>
+          {data.poll.description && <p className="text-xs text-slate-500">{data.poll.description}</p>}
+          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 pt-2 border-t border-slate-100">
             <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" />
-              {new Date(data.poll.expiresAt) > new Date() ? 'Active — closes' : 'Closed'}{' '}
+              <Clock className="w-3.5 h-3.5 text-blue-600" />
+              {new Date(data.poll.expiresAt) > new Date() ? 'Active: closes' : 'Closed'}{' '}
               {new Date(data.poll.expiresAt).toLocaleString()}
             </span>
             <span className="flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5" />
-              <strong className="text-slate-700">{data.stats.totalVotes}</strong> total votes
+              <Users className="w-3.5 h-3.5 text-blue-600" />
+              <strong className="text-slate-800 font-mono">{data.stats.totalVotes}</strong> verified ballots
             </span>
-            <span className={`px-2.5 py-1 rounded-full font-semibold ${data.poll.isResultPublic ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'}`}>
+            <span className={`px-2.5 py-0.5 rounded text-[11px] font-semibold ${data.poll.isResultPublic ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-600'}`}>
               {data.poll.isResultPublic ? 'Results Public' : 'Results Private'}
             </span>
           </div>
         </div>
 
         {/* Results breakdown */}
-        <div className="glass-panel p-8 rounded-3xl space-y-5 print:border print:shadow-none print:rounded-none print:p-4">
-          <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-blue-600 print:hidden" />
-            Result Breakdown
+        <div className="app-card p-8 space-y-5 print:border print:shadow-none print:rounded-none print:p-4">
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-blue-600 print:hidden" />
+            Candidate Vote Breakdown
           </h2>
           {data.stats.totalVotes === 0 ? (
-            <p className="text-slate-400 text-sm text-center py-6">No votes have been cast yet.</p>
+            <p className="text-slate-400 text-xs text-center py-6">No ballots have been submitted yet.</p>
           ) : (
             <div className="space-y-4">
-              {data.stats.options.map((opt, i) => (
+              {data.stats.options.map((opt) => (
                 <div key={opt.option} className="space-y-1.5">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center text-xs">
                     <div className="flex items-center gap-2">
                       {opt.option === winner?.option && (
-                        <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full print:border">WINNER</span>
+                        <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded print:border">WINNER</span>
                       )}
-                      <span className="text-sm font-semibold text-slate-800">{opt.option}</span>
+                      <span className="font-semibold text-slate-800">{opt.option}</span>
                     </div>
-                    <span className="text-sm font-bold text-blue-700">{opt.count} votes ({opt.percentage}%)</span>
+                    <span className="font-mono text-slate-700 font-bold">{opt.count} votes ({opt.percentage}%)</span>
                   </div>
-                  <div className="h-3 bg-slate-100 rounded-full overflow-hidden print:border">
+                  <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200 print:border">
                     <div
-                      className={`h-full rounded-full ${['bg-blue-500', 'bg-violet-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500'][i % 5]}`}
+                      className="h-full rounded-full bg-blue-600"
                       style={{ width: `${opt.percentage}%` }}
                     />
                   </div>
@@ -226,23 +235,23 @@ export default function AdminDetailedResultsPage() {
 
         {/* Anonymized voter audit log */}
         {data.responses.length > 0 && (
-          <div className="glass-panel p-8 rounded-3xl space-y-4 print:border print:shadow-none print:rounded-none print:p-4">
-            <h2 className="text-base font-bold text-slate-800">Anonymized Voter Audit Log</h2>
+          <div className="app-card p-8 space-y-4 print:border print:shadow-none print:rounded-none print:p-4">
+            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Anonymized Voter Audit Log</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left border-collapse">
                 <thead>
-                  <tr className="text-slate-400 uppercase tracking-wider border-b">
+                  <tr className="text-slate-500 uppercase tracking-wider border-b border-slate-200">
                     <th className="pb-3 pr-4 font-semibold">Voter Label</th>
                     <th className="pb-3 pr-4 font-semibold">Choice</th>
-                    <th className="pb-3 font-semibold">Timestamp</th>
+                    <th className="pb-3 font-semibold">Verification Timestamp</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {data.responses.map((r, index) => (
                     <tr key={r.id || index} className="hover:bg-slate-50 transition-colors">
                       <td className="py-2.5 pr-4 font-mono font-semibold text-slate-700">Voter {index + 1}</td>
-                      <td className="py-2.5 pr-4 font-semibold text-slate-800">{r.selectedOption}</td>
-                      <td className="py-2.5 text-slate-400">{new Date(r.timestamp).toLocaleString()}</td>
+                      <td className="py-2.5 pr-4 font-semibold text-slate-900">{r.selectedOption}</td>
+                      <td className="py-2.5 text-slate-500 font-mono">{new Date(r.timestamp).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -255,3 +264,4 @@ export default function AdminDetailedResultsPage() {
     </main>
   );
 }
+

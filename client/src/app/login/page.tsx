@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Mail, Eye, EyeOff, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 
 import { getApiBaseUrl } from '@/lib/api';
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
@@ -69,7 +70,7 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch {
-      setErrorMessage('Unable to connect to authentication server. Please check your backend connection.');
+      setErrorMessage('Unable to connect to authentication server. Please check your network.');
     } finally {
       setIsLoading(false);
     }
@@ -77,48 +78,52 @@ export default function LoginPage() {
 
   const handleGoogleOAuth = () => {
     if (!GOOGLE_CLIENT_ID) {
-      setErrorMessage('Google OAuth is not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID in the .env.local file.');
+      setErrorMessage('Google OAuth is not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID.');
       return;
     }
-    // Real Google OAuth 2.0 redirect — no hardcoded data
     window.location.href = buildGoogleOAuthUrl();
   };
 
   return (
-    <main className="min-h-screen flex flex-col justify-center items-center px-4 py-12">
+    <main className="min-h-[85vh] flex flex-col justify-center items-center px-4 py-12">
       <div className="w-full max-w-md space-y-6">
         {/* Brand Header */}
         <div className="text-center flex flex-col items-center">
-          <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 p-1 shadow-lg shadow-indigo-500/10 mb-3 flex items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Ballotly Logo" className="w-full h-full object-cover rounded-xl" />
+          <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 p-1 mb-2 flex items-center justify-center">
+            <Image
+              src="/logo.png"
+              alt="Ballotly Logo"
+              width={40}
+              height={40}
+              className="w-full h-full object-contain"
+            />
           </div>
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-extrabold mb-3">
-            Ballotly Platform
+          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-2">
+            Organizer Portal
           </span>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Admin & Manager Sign In</h1>
-          <p className="text-sm text-slate-500 mt-2">
-            Access your election dashboard to create polls, manage timers, and configure live results visibility.
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Sign In to Dashboard</h1>
+          <p className="text-xs text-slate-500 mt-1 max-w-xs">
+            Manage your elections, configure whitelist verification, and inspect verified results.
           </p>
         </div>
 
-        {/* Light Glassmorphism Card */}
-        <div className="glass-panel p-8 rounded-3xl border border-slate-200 shadow-xl space-y-6">
+        {/* Solid Tactile Card */}
+        <div className="app-card p-8 space-y-6">
           {errorMessage && (
-            <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
               <span>{errorMessage}</span>
             </div>
           )}
 
-          {/* Google OAuth 2.0 Button — redirects to Google's real consent screen */}
+          {/* Google OAuth 2.0 Button */}
           <button
+            type="button"
             onClick={handleGoogleOAuth}
             disabled={isLoading}
-            className="w-full py-3.5 px-4 rounded-2xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-sm transition-all flex items-center justify-center gap-3 shadow-sm active:scale-[0.99]"
+            className="w-full py-2.5 px-4 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-xs transition-colors flex items-center justify-center gap-2.5"
           >
-            {/* Official Google Brand SVG */}
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
@@ -127,16 +132,16 @@ export default function LoginPage() {
             <span>Continue with Google</span>
           </button>
 
-          <div className="flex items-center my-4">
+          <div className="flex items-center my-3">
             <div className="flex-grow border-t border-slate-200"></div>
-            <span className="px-3 text-xs text-slate-400 font-medium">OR SIGN IN WITH EMAIL</span>
+            <span className="px-3 text-[11px] text-slate-400 font-semibold uppercase tracking-wider">or sign in with email</span>
             <div className="flex-grow border-t border-slate-200"></div>
           </div>
 
           {/* Credentials Form */}
           <form onSubmit={handleCredentialsLogin} className="space-y-4">
             <div>
-              <label htmlFor="login-email" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+              <label htmlFor="login-email" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                 Email Address
               </label>
               <div className="relative">
@@ -148,14 +153,14 @@ export default function LoginPage() {
                   placeholder="admin@university.edu"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full glass-input rounded-2xl px-4 py-3 text-sm"
+                  className="w-full app-input px-3.5 py-2 text-sm pr-10"
                 />
-                <Mail className="w-4 h-4 text-slate-400 absolute right-4 top-3.5" />
+                <Mail className="w-4 h-4 text-slate-400 absolute right-3.5 top-2.5" />
               </div>
             </div>
 
             <div>
-              <label htmlFor="login-password" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+              <label htmlFor="login-password" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -167,12 +172,12 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full glass-input rounded-2xl px-4 py-3 text-sm pr-11"
+                  className="w-full app-input px-3.5 py-2 text-sm pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                  className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 transition-colors p-1"
                   title={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -183,15 +188,12 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 active:scale-[0.99]"
+              className="w-full py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2"
             >
               {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <>
-                  <span>Sign In to Dashboard</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
+                'Sign In to Dashboard'
               )}
             </button>
           </form>
@@ -199,12 +201,13 @@ export default function LoginPage() {
 
         {/* Mode Toggle Link */}
         <p className="text-center text-xs text-slate-500">
-          Don&apos;t have an admin account?{' '}
+          Need an organizer account?{' '}
           <Link href="/signup" className="font-semibold text-blue-600 hover:underline">
-            Register new election manager account
+            Register new account
           </Link>
         </p>
       </div>
     </main>
   );
 }
+
