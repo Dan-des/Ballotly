@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   PlusCircle,
@@ -18,7 +17,6 @@ import {
   Trash2,
   BarChart3,
   LogOut,
-  Sparkles,
   Layers,
   X,
   Share2,
@@ -37,6 +35,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { getApiBaseUrl } from '@/lib/api';
 import { PollCardSkeleton } from '@/components/SkeletonLoader';
 import ScrollReveal from '@/components/ScrollReveal';
+import BallotlyLogo from '@/components/BallotlyLogo';
 
 type TrackingMethod = 'email' | 'phone' | 'email_phone' | 'student_id' | 'email_studentid' | 'voter_id';
 
@@ -477,15 +476,7 @@ export default function Dashboard() {
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center justify-between gap-3 w-full">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0">
-                <Image
-                  src="/logo.png"
-                  alt="Ballotly Logo"
-                  width={36}
-                  height={36}
-                  className="w-full h-full object-contain"
-                />
-              </div>
+              <BallotlyLogo size={38} />
               <div className="min-w-0">
                 <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Ballotly Platform</p>
                 <h1 className="text-sm sm:text-base font-bold text-slate-900 leading-tight truncate">

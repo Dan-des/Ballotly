@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   User, Mail, Eye, EyeOff, ArrowLeft,
@@ -10,6 +9,7 @@ import {
 } from 'lucide-react';
 
 import { getApiBaseUrl } from '@/lib/api';
+import BallotlyLogo from '@/components/BallotlyLogo';
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 const RESEND_COOLDOWN = 60;
 
@@ -113,14 +113,8 @@ function StepOne({ onOtpSent }: StepOneProps) {
     <div className="w-full max-w-md space-y-6">
       {/* Brand Header */}
       <div className="text-center flex flex-col items-center">
-        <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 p-1 mb-2 flex items-center justify-center">
-          <Image
-            src="/logo.png"
-            alt="Ballotly Logo"
-            width={40}
-            height={40}
-            className="w-full h-full object-contain"
-          />
+        <div className="mb-2">
+          <BallotlyLogo size={52} />
         </div>
         <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-2">
           Organizer Registration

@@ -1,19 +1,13 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import BallotlyLogo from '@/components/BallotlyLogo';
 
 export default function NotFound() {
   return (
     <main className="min-h-[80vh] flex items-center justify-center px-4 py-16">
       <div className="app-card max-w-md w-full p-8 text-center space-y-6">
         <div className="flex justify-center">
-          <Image
-            src="/logo.png"
-            alt="Ballotly Logo"
-            width={48}
-            height={48}
-            className="w-12 h-12 object-contain"
-          />
+          <BallotlyLogo size={52} />
         </div>
 
         <div className="space-y-2">

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import {
   BarChart3,
@@ -17,6 +16,7 @@ import { getApiBaseUrl } from '@/lib/api';
 import { BallotFormSkeleton } from '@/components/SkeletonLoader';
 import SocialShare from '@/components/SocialShare';
 import ScrollReveal from '@/components/ScrollReveal';
+import BallotlyLogo from '@/components/BallotlyLogo';
 
 interface StatsOption {
   option: string;
@@ -163,14 +163,8 @@ export default function LiveResultsPage() {
 
         {/* Platform badge */}
         <div className="text-center flex flex-col items-center">
-          <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 p-1 mb-2 flex items-center justify-center">
-            <Image
-              src="/logo.png"
-              alt="Ballotly Logo"
-              width={40}
-              height={40}
-              className="w-full h-full object-contain"
-            />
+          <div className="mb-2">
+            <BallotlyLogo size={46} />
           </div>
           <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold">
             Live Election Standings

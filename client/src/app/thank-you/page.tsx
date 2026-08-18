@@ -3,8 +3,8 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import SocialShare from '@/components/SocialShare';
+import BallotlyLogo from '@/components/BallotlyLogo';
 
 function ThankYouContent() {
   const searchParams = useSearchParams();
@@ -20,8 +20,14 @@ function ThankYouContent() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setCurrentUrl(`${window.location.origin}/vote/${pollId}`);
-      if (!receiptId) {
-        setDisplayReceipt(`REC-${Math.random().toString(36).substring(2, 9).toUpperCase()}`);
+    }
+  }, [pollId]);
+
+  useEffect(() => {
+    if (!receiptId && pollId) {
+      const stored = sessionStorage.getItem(`receipt_${pollId}`);
+      if (stored) {
+        setDisplayReceipt(stored);
       }
     }
   }, [pollId, receiptId]);
@@ -30,13 +36,7 @@ function ThankYouContent() {
     <main className="min-h-[85vh] flex items-center justify-center px-4 py-12">
       <div className="app-card max-w-lg w-full p-8 sm:p-10 space-y-8">
         <div className="flex justify-center">
-          <Image
-            src="/logo.png"
-            alt="Ballotly Logo"
-            width={48}
-            height={48}
-            className="w-12 h-12 object-contain"
-          />
+          <BallotlyLogo size={52} />
         </div>
 
         <div className="text-center space-y-2">

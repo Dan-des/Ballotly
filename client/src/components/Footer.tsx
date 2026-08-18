@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import BallotlyLogo from '@/components/BallotlyLogo';
 
 export default function Footer() {
   return (
@@ -8,16 +8,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-10">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="flex items-center gap-2.5">
-              <Image
-                src="/logo.png"
-                alt="Ballotly Logo"
-                width={28}
-                height={28}
-                className="w-7 h-7 object-contain"
-              />
-              <span className="font-bold text-slate-900 text-lg tracking-tight">Ballotly</span>
-            </div>
+            <BallotlyLogo size={28} withText />
             <p className="text-xs text-slate-500 max-w-sm">
               Cryptographically verified institutional voting and governance infrastructure.
             </p>
