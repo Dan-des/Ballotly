@@ -209,73 +209,63 @@ export default function LandingPage() {
       </header>
 
       {/* ── Hero Section ─────────────────────────────────────────────── */}
-      <section className="relative pt-12 pb-16 md:pt-20 md:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+      <section className="relative pt-12 pb-16 md:pt-20 md:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full animate-in fade-in duration-300">
         <div className="text-center max-w-3xl mx-auto space-y-6">
-          <ScrollReveal direction="down" delay={0}>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200/80 border border-slate-300 text-[11px] font-bold text-slate-800 uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-              Institutional Digital Elections &amp; Multi-Position Ballots
-            </div>
-          </ScrollReveal>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200/80 border border-slate-300 text-[11px] font-bold text-slate-800 uppercase tracking-wider">
+            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+            Institutional Digital Elections &amp; Multi-Position Ballots
+          </div>
 
-          <ScrollReveal direction="up" delay={80}>
-            <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight sm:leading-tight">
-              Verified Digital Voting and Governance for Organizations
-            </h1>
-          </ScrollReveal>
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight sm:leading-tight">
+            Verified Digital Voting and Governance for Organizations
+          </h1>
 
-          <ScrollReveal direction="up" delay={160}>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-              Ballotly provides cryptographic ballot verification, multi-office governance elections, and voter deduplication. Designed for professional bodies, labor unions, associations, and campus student elections.
-            </p>
-          </ScrollReveal>
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
+            Ballotly provides cryptographic ballot verification, multi-office governance elections, and voter deduplication. Designed for professional bodies, labor unions, associations, and campus student elections.
+          </p>
 
           {/* Primary Action Buttons */}
-          <ScrollReveal direction="up" delay={240}>
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link
-                href="/login"
-                className="btn-press w-full sm:w-auto px-6 py-3.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors inline-flex items-center justify-center gap-2"
-              >
-                <span>Create a Poll</span>
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </Link>
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/login"
+              className="btn-press w-full sm:w-auto px-6 py-3.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors inline-flex items-center justify-center gap-2"
+            >
+              <span>Create a Poll</span>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </Link>
 
-              <a
-                href="#showcase"
-                className="btn-press w-full sm:w-auto px-6 py-3.5 text-sm font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors inline-flex items-center justify-center gap-2"
-              >
-                <span>Explore Live Showcase</span>
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 9l-7 7-7-7" />
-                </svg>
-              </a>
-            </div>
-          </ScrollReveal>
+            <a
+              href="#showcase"
+              className="btn-press w-full sm:w-auto px-6 py-3.5 text-sm font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors inline-flex items-center justify-center gap-2"
+            >
+              <span>Explore Live Showcase</span>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 9l-7 7-7-7" />
+              </svg>
+            </a>
+          </div>
 
           {/* Trust Highlights */}
-          <ScrollReveal direction="up" delay={320}>
-            <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
-              <div className="p-3 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors">
-                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Integrity</span>
-                <span className="text-xs font-semibold text-slate-900">Zero Double-Voting</span>
-              </div>
-              <div className="p-3 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors">
-                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Structure</span>
-                <span className="text-xs font-semibold text-slate-900">Multi-Position Ballots</span>
-              </div>
-              <div className="p-3 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors">
-                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Control</span>
-                <span className="text-xs font-semibold text-slate-900">Whitelist Verification</span>
-              </div>
-              <div className="p-3 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors">
-                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Compliance</span>
-                <span className="text-xs font-semibold text-slate-900">CSV Audit Exports</span>
-              </div>
+          <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
+            <div className="p-3 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors">
+              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Integrity</span>
+              <span className="text-xs font-semibold text-slate-900">Zero Double-Voting</span>
             </div>
-          </ScrollReveal>
+            <div className="p-3 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors">
+              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Structure</span>
+              <span className="text-xs font-semibold text-slate-900">Multi-Position Ballots</span>
+            </div>
+            <div className="p-3 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors">
+              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Control</span>
+              <span className="text-xs font-semibold text-slate-900">Whitelist Verification</span>
+            </div>
+            <div className="p-3 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors">
+              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Compliance</span>
+              <span className="text-xs font-semibold text-slate-900">CSV Audit Exports</span>
+            </div>
+          </div>
         </div>
       </section>
 

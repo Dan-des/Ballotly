@@ -34,6 +34,13 @@ export default function ScrollReveal({
       return;
     }
 
+    // Immediately check if element is already within viewport on initial render
+    const rect = el.getBoundingClientRect();
+    if (rect.top < (window.innerHeight || 800) && rect.bottom > 0) {
+      setIsVisible(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -41,7 +48,7 @@ export default function ScrollReveal({
           observer.unobserve(el);
         }
       },
-      { threshold, rootMargin: '0px 0px -40px 0px' }
+      { threshold, rootMargin: '0px 0px 80px 0px' }
     );
 
     observer.observe(el);
