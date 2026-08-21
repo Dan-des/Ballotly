@@ -7,22 +7,40 @@
 export function isStandalonePwa(): boolean {
   if (typeof window === 'undefined') return false;
 
-  // 1. Check standard display-mode media queries
-  const isStandaloneMedia = window.matchMedia('(display-mode: standalone)').matches;
-  const isFullscreenMedia = window.matchMedia('(display-mode: fullscreen)').matches;
-  const isMinimalUiMedia = window.matchMedia('(display-mode: minimal-ui)').matches;
-
-  // 2. Check iOS Safari standalone mode
-  const isIosStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-
-  // 3. Check Android webview / intent referrer
-  const isAndroidApp = typeof document !== 'undefined' && document.referrer.includes('android-app://');
-
-  // 4. Check explicit query parameter passed by manifest start_url
+  // 1. Check explicit query parameter passed by manifest start_url
   const params = new URLSearchParams(window.location.search);
-  const isQueryPwa = params.get('source') === 'pwa' || params.get('mode') === 'pwa';
+  if (params.get('source') === 'pwa' || params.get('mode') === 'pwa') {
+    try {
+      sessionStorage.setItem('ballotly_is_pwa', 'true');
+    } catch {}
+    return true;
+  }
 
-  return isStandaloneMedia || isFullscreenMedia || isMinimalUiMedia || isIosStandalone || isAndroidApp || isQueryPwa;
+  // 2. Check if this session was verified as PWA
+  try {
+    if (sessionStorage.getItem('ballotly_is_pwa') === 'true') {
+      return true;
+    }
+  } catch {}
+
+  // 3. Check iOS Safari standalone mode
+  const isIosStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+  if (isIosStandalone) {
+    return true;
+  }
+
+  // 4. Check Android webview / intent referrer
+  if (typeof document !== 'undefined' && document.referrer && document.referrer.includes('android-app://')) {
+    return true;
+  }
+
+  // 5. Check exact standalone display mode only (never match fullscreen or minimal-ui)
+  const isStandaloneMedia = window.matchMedia('(display-mode: standalone)').matches;
+  if (isStandaloneMedia) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
