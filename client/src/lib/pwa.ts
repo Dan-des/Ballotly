@@ -45,13 +45,13 @@ export function isStandalonePwa(): boolean {
 
 /**
  * Returns the appropriate destination URL when a user logs out.
- * - Installed PWA: Redirects to /login (bypasses landing page).
- * - Web Browser: Redirects to / (the Landing Page).
+ * - Installed PWA: Redirects to /?source=pwa (the PWA App Onboarding screen).
+ * - Web Browser: Redirects to / (the website Landing Page).
  */
 export function getPostLogoutRedirectUrl(message?: string): string {
   const isPwa = isStandalonePwa();
   if (isPwa) {
-    return message ? `/login?message=${encodeURIComponent(message)}` : '/login';
+    return message ? `/?source=pwa&message=${encodeURIComponent(message)}` : '/?source=pwa';
   }
   return message ? `/?message=${encodeURIComponent(message)}` : '/';
 }

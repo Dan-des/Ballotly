@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BallotlyLogo from '@/components/BallotlyLogo';
 import ScrollReveal from '@/components/ScrollReveal';
+import PwaOnboarding from '@/components/PwaOnboarding';
 import { isStandalonePwa } from '@/lib/pwa';
 
 export default function LandingPage() {
@@ -53,8 +54,6 @@ export default function LandingPage() {
       const token = localStorage.getItem('voting_admin_token');
       if (token) {
         router.replace('/dashboard');
-      } else {
-        router.replace('/login');
       }
       return;
     }
@@ -85,16 +84,9 @@ export default function LandingPage() {
     }
   }, [activeTab]);
 
-  // If in PWA standalone mode, render a minimal loader while redirection takes place
+  // If in PWA standalone mode, render the native mobile app onboarding screens!
   if (isPwa) {
-    return (
-      <main className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs text-slate-500 font-medium">Launching Ballotly...</span>
-        </div>
-      </main>
-    );
+    return <PwaOnboarding />;
   }
 
   const handleCopyPageUrl = async () => {
