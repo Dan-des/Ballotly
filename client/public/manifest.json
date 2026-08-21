@@ -1,8 +1,8 @@
 {
-  "name": "Ballotly — Secure Voting & Elections Platform",
+  "name": "Ballotly - Secure Voting & Elections Platform",
   "short_name": "Ballotly",
   "description": "Run transparent, verified, and secure digital elections, polls, and governance votes at any scale.",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",

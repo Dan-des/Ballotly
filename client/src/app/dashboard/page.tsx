@@ -33,6 +33,7 @@ import {
 import { QRCodeCanvas } from 'qrcode.react';
 
 import { getApiBaseUrl } from '@/lib/api';
+import { getPostLogoutRedirectUrl } from '@/lib/pwa';
 import { PollCardSkeleton } from '@/components/SkeletonLoader';
 import ScrollReveal from '@/components/ScrollReveal';
 import BallotlyLogo from '@/components/BallotlyLogo';
@@ -409,7 +410,7 @@ export default function Dashboard() {
   const handleLogout = () => {
     localStorage.removeItem('voting_admin_token');
     localStorage.removeItem('voting_admin_user');
-    router.push('/login');
+    router.push(getPostLogoutRedirectUrl());
   };
 
   const handleDeleteAccount = async () => {
@@ -423,7 +424,7 @@ export default function Dashboard() {
       if (res.ok && data.success) {
         localStorage.removeItem('voting_admin_token');
         localStorage.removeItem('voting_admin_user');
-        router.push('/login?message=Account deleted');
+        router.push(getPostLogoutRedirectUrl('Account deleted'));
       } else {
         setFeedbackMsg({ type: 'error', text: data.error || 'Failed to delete account.' });
         setShowDeleteAccountModal(false);
