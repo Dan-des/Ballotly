@@ -19,6 +19,27 @@ export default function LandingPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [shareCopied, setShareCopied] = useState(false);
   const [selectedStation, setSelectedStation] = useState<string>('main');
+  const [activeSection, setActiveSection] = useState<string>('');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ['showcase', 'capabilities', 'process', 'use-cases', 'polling-station', 'faq'];
+      const scrollPos = window.scrollY + 120;
+      for (const section of sections) {
+        const el = document.getElementById(section);
+        if (el) {
+          const top = el.offsetTop;
+          const height = el.offsetHeight;
+          if (scrollPos >= top && scrollPos < top + height) {
+            setActiveSection(section);
+            break;
+          }
+        }
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     // 1. Check if running inside installed PWA / standalone mobile app
@@ -138,6 +159,20 @@ export default function LandingPage() {
     },
   ];
 
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    e.preventDefault();
+    const el = document.getElementById(sectionId);
+    if (el) {
+      const headerOffset = 76;
+      const elementPosition = el.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   const filteredFaqs = faqItems.filter(
     (item) =>
       item.question.toLowerCase().includes(faqSearchQuery.toLowerCase()) ||
@@ -153,23 +188,47 @@ export default function LandingPage() {
           <div className="flex items-center gap-6">
             <BallotlyLogo size={34} withText href="/" />
             <nav className="hidden md:flex items-center gap-5 text-xs font-semibold text-slate-600">
-              <a href="#showcase" className="hover:text-blue-600 transition-colors">
+              <a
+                href="#showcase"
+                onClick={(e) => scrollToSection(e, 'showcase')}
+                className={`transition-colors hover:text-blue-600 ${activeSection === 'showcase' ? 'text-blue-600 font-bold' : ''}`}
+              >
                 Live Showcase
               </a>
-              <a href="#capabilities" className="hover:text-blue-600 transition-colors">
+              <a
+                href="#capabilities"
+                onClick={(e) => scrollToSection(e, 'capabilities')}
+                className={`transition-colors hover:text-blue-600 ${activeSection === 'capabilities' ? 'text-blue-600 font-bold' : ''}`}
+              >
                 Capabilities
               </a>
-              <a href="#process" className="hover:text-blue-600 transition-colors">
+              <a
+                href="#process"
+                onClick={(e) => scrollToSection(e, 'process')}
+                className={`transition-colors hover:text-blue-600 ${activeSection === 'process' ? 'text-blue-600 font-bold' : ''}`}
+              >
                 How It Works
               </a>
-              <a href="#use-cases" className="hover:text-blue-600 transition-colors">
+              <a
+                href="#use-cases"
+                onClick={(e) => scrollToSection(e, 'use-cases')}
+                className={`transition-colors hover:text-blue-600 ${activeSection === 'use-cases' ? 'text-blue-600 font-bold' : ''}`}
+              >
                 Use Cases
               </a>
-              <a href="#faq" className="hover:text-blue-600 transition-colors">
-                FAQ
-              </a>
-              <a href="#polling-station" className="hover:text-blue-600 transition-colors">
+              <a
+                href="#polling-station"
+                onClick={(e) => scrollToSection(e, 'polling-station')}
+                className={`transition-colors hover:text-blue-600 ${activeSection === 'polling-station' ? 'text-blue-600 font-bold' : ''}`}
+              >
                 Polling Centers
+              </a>
+              <a
+                href="#faq"
+                onClick={(e) => scrollToSection(e, 'faq')}
+                className={`transition-colors hover:text-blue-600 ${activeSection === 'faq' ? 'text-blue-600 font-bold' : ''}`}
+              >
+                FAQ
               </a>
             </nav>
           </div>
@@ -238,6 +297,7 @@ export default function LandingPage() {
 
             <a
               href="#showcase"
+              onClick={(e) => scrollToSection(e, 'showcase')}
               className="btn-press w-full sm:w-auto px-6 py-3.5 text-sm font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors inline-flex items-center justify-center gap-2"
             >
               <span>Explore Live Showcase</span>
