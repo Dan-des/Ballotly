@@ -42,7 +42,12 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
-    // 1. Check if running inside installed PWA / standalone mobile app
+    // 1. Clean any legacy #hash from browser address bar immediately
+    if (typeof window !== 'undefined' && window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+
+    // 2. Check if running inside installed PWA / standalone mobile app
     if (isStandalonePwa()) {
       setIsPwa(true);
       const token = localStorage.getItem('voting_admin_token');
@@ -54,7 +59,7 @@ export default function LandingPage() {
       return;
     }
 
-    // 2. In browser mode: check authentication status for dynamic nav actions
+    // 3. In browser mode: check authentication status for dynamic nav actions
     const token = localStorage.getItem('voting_admin_token');
     if (token) {
       setIsAuthenticated(true);
@@ -159,8 +164,7 @@ export default function LandingPage() {
     },
   ];
 
-  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
-    e.preventDefault();
+  const scrollToSection = (sectionId: string) => {
     const el = document.getElementById(sectionId);
     if (el) {
       const headerOffset = 76;
@@ -188,48 +192,48 @@ export default function LandingPage() {
           <div className="flex items-center gap-6">
             <BallotlyLogo size={34} withText href="/" />
             <nav className="hidden md:flex items-center gap-5 text-xs font-semibold text-slate-600">
-              <a
-                href="#showcase"
-                onClick={(e) => scrollToSection(e, 'showcase')}
-                className={`transition-colors hover:text-blue-600 ${activeSection === 'showcase' ? 'text-blue-600 font-bold' : ''}`}
+              <button
+                type="button"
+                onClick={() => scrollToSection('showcase')}
+                className={`transition-colors hover:text-blue-600 cursor-pointer ${activeSection === 'showcase' ? 'text-blue-600 font-bold' : ''}`}
               >
                 Live Showcase
-              </a>
-              <a
-                href="#capabilities"
-                onClick={(e) => scrollToSection(e, 'capabilities')}
-                className={`transition-colors hover:text-blue-600 ${activeSection === 'capabilities' ? 'text-blue-600 font-bold' : ''}`}
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollToSection('capabilities')}
+                className={`transition-colors hover:text-blue-600 cursor-pointer ${activeSection === 'capabilities' ? 'text-blue-600 font-bold' : ''}`}
               >
                 Capabilities
-              </a>
-              <a
-                href="#process"
-                onClick={(e) => scrollToSection(e, 'process')}
-                className={`transition-colors hover:text-blue-600 ${activeSection === 'process' ? 'text-blue-600 font-bold' : ''}`}
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollToSection('process')}
+                className={`transition-colors hover:text-blue-600 cursor-pointer ${activeSection === 'process' ? 'text-blue-600 font-bold' : ''}`}
               >
                 How It Works
-              </a>
-              <a
-                href="#use-cases"
-                onClick={(e) => scrollToSection(e, 'use-cases')}
-                className={`transition-colors hover:text-blue-600 ${activeSection === 'use-cases' ? 'text-blue-600 font-bold' : ''}`}
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollToSection('use-cases')}
+                className={`transition-colors hover:text-blue-600 cursor-pointer ${activeSection === 'use-cases' ? 'text-blue-600 font-bold' : ''}`}
               >
                 Use Cases
-              </a>
-              <a
-                href="#polling-station"
-                onClick={(e) => scrollToSection(e, 'polling-station')}
-                className={`transition-colors hover:text-blue-600 ${activeSection === 'polling-station' ? 'text-blue-600 font-bold' : ''}`}
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollToSection('polling-station')}
+                className={`transition-colors hover:text-blue-600 cursor-pointer ${activeSection === 'polling-station' ? 'text-blue-600 font-bold' : ''}`}
               >
                 Polling Centers
-              </a>
-              <a
-                href="#faq"
-                onClick={(e) => scrollToSection(e, 'faq')}
-                className={`transition-colors hover:text-blue-600 ${activeSection === 'faq' ? 'text-blue-600 font-bold' : ''}`}
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollToSection('faq')}
+                className={`transition-colors hover:text-blue-600 cursor-pointer ${activeSection === 'faq' ? 'text-blue-600 font-bold' : ''}`}
               >
                 FAQ
-              </a>
+              </button>
             </nav>
           </div>
 
@@ -295,16 +299,16 @@ export default function LandingPage() {
               </svg>
             </Link>
 
-            <a
-              href="#showcase"
-              onClick={(e) => scrollToSection(e, 'showcase')}
-              className="btn-press w-full sm:w-auto px-6 py-3.5 text-sm font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors inline-flex items-center justify-center gap-2"
+            <button
+              type="button"
+              onClick={() => scrollToSection('showcase')}
+              className="btn-press w-full sm:w-auto px-6 py-3.5 text-sm font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors inline-flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Explore Live Showcase</span>
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 9l-7 7-7-7" />
               </svg>
-            </a>
+            </button>
           </div>
 
           {/* Trust Highlights */}

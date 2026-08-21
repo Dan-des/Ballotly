@@ -59,8 +59,11 @@ function StepOne({ onOtpSent }: StepOneProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Background server warm-up
+  // Background server warm-up and URL hash cleanup
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
     fetch(`${getApiBaseUrl()}/health`).catch(() => {});
   }, []);
 
@@ -111,10 +114,22 @@ function StepOne({ onOtpSent }: StepOneProps) {
 
   return (
     <div className="w-full max-w-md space-y-6">
+      <div className="flex items-center justify-between">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          <span>Back to Home</span>
+        </Link>
+      </div>
+
       {/* Brand Header */}
       <div className="text-center flex flex-col items-center">
         <div className="mb-2">
-          <BallotlyLogo size={52} />
+          <BallotlyLogo size={52} href="/" />
         </div>
         <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-2">
           Organizer Registration
