@@ -10,6 +10,7 @@ import {
 
 import { getApiBaseUrl } from '@/lib/api';
 import BallotlyLogo from '@/components/BallotlyLogo';
+import { isStandalonePwa } from '@/lib/pwa';
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 const RESEND_COOLDOWN = 60;
 
@@ -50,6 +51,7 @@ interface StepOneProps {
 }
 
 function StepOne({ onOtpSent }: StepOneProps) {
+  const [isPwa, setIsPwa] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -61,6 +63,9 @@ function StepOne({ onOtpSent }: StepOneProps) {
 
   // Background server warm-up and URL hash cleanup
   useEffect(() => {
+    if (isStandalonePwa()) {
+      setIsPwa(true);
+    }
     if (typeof window !== 'undefined' && window.location.hash) {
       window.history.replaceState(null, '', window.location.pathname);
     }
@@ -114,22 +119,24 @@ function StepOne({ onOtpSent }: StepOneProps) {
 
   return (
     <div className="w-full max-w-md space-y-6">
-      <div className="flex items-center justify-between">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors"
-        >
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-          <span>Back to Home</span>
-        </Link>
-      </div>
+      {!isPwa && (
+        <div className="flex items-center justify-between">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            <span>Back to Home</span>
+          </Link>
+        </div>
+      )}
 
       {/* Brand Header */}
       <div className="text-center flex flex-col items-center">
         <div className="mb-2">
-          <BallotlyLogo size={52} href="/" />
+          <BallotlyLogo size={52} href={isPwa ? undefined : '/'} />
         </div>
         <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-2">
           Organizer Registration
