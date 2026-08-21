@@ -343,20 +343,21 @@ export default function LandingPage() {
           {/* Interactive UI Mockup Card Container */}
           <ScrollReveal direction="up" delay={120}>
             <div className="max-w-4xl mx-auto bg-white border border-slate-300 rounded-xl overflow-hidden transition-all duration-300">
-              {/* Mockup Window Titlebar */}
-              <div className="bg-slate-900 text-white px-4 py-3 border-b border-slate-800 flex items-center justify-between text-xs">
+              {/* Showcase Card Header */}
+              <div className="bg-slate-50 border-b border-slate-200 px-5 py-3.5 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
-                  <span className="ml-2 font-mono text-[11px] text-slate-400">
-                    ballotly.internal/app/{activeTab === 'create' ? 'polls/new' : activeTab === 'share' ? 'polls/distribution' : 'polls/audit-results'}
+                  <span className="text-xs font-bold text-slate-800">
+                    {activeTab === 'create'
+                      ? 'Poll Builder & Ballot Setup'
+                      : activeTab === 'share'
+                      ? 'Voter Access & Distribution Hub'
+                      : 'Live Audit & Results Portal'}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-wider">
-                    Live Verification Online
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
+                    Live Preview
                   </span>
                 </div>
               </div>
